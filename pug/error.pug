@@ -1,0 +1,9 @@
+extends include/page.pug
+
+block content
+	div.jumbotron
+		h1 Opps, something went wrong!
+		p 
+			| 发生如下错误：#{message}
+		p
+			a.btn.btn-primary.btn-big(href=fun.uri("index")) 返回首页

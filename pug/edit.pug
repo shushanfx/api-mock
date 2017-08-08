@@ -1,0 +1,79 @@
+extends include/page.pug
+
+block content
+		#divContent
+			div.panel.panel-default
+				div.panel-heading
+					| 基本信息
+				div.panel-body
+					form.form-horizontal
+						.form-group
+							label.col-sm-2.control-label(for='txtName') Name(*)
+							.col-sm-10
+								input#txtName.form-control(type='text', placeholder="mock的名称", name="name")
+						.form-group
+							label.col-sm-2.control-label(for='txtCreator') Creator
+							.col-sm-10
+								input#txtCreator.form-control(type="text", placeholder="创建者，记录好人标识~~", name="creator")
+						.form-group
+							label.col-sm-2.control-label(for='txtDescription') Description
+							.col-sm-10
+								textarea#txtDescription.form-control(placeholder="创建者，记录好人标识~~", row="5", name="description")
+			div.panel.panel-default
+				div.panel-heading
+					| Mock API信息
+				div.panel-body
+					form.form-horizontal
+						.form-group
+							label.col-sm-2.control-label(for='txtHost') Host(*)
+							.col-sm-10
+								input#txtHost.form-control(type='text', placeholder="mock的服务器名", name="host")
+						.form-group
+							label.col-sm-2.control-label(for='txtPort') Port(*)
+							.col-sm-10
+								input#txtPort.form-control(type='number', placeholder="服务器端口，默认80", value="80", name="port")
+						.form-group
+							label.col-sm-2.control-label(for='txtPath') Path(*)
+							.col-sm-10
+								input#txtPath.form-control(type='text', placeholder="路径地址，/开头", value="", name="path")
+						.form-group
+							label.col-sm-2.control-label(for='txtExample') Example
+							.col-sm-10
+								input#txtExample.form-control(type='text', placeholder="给个样例，方便测试~~", name="example")
+						.form-group
+							label.col-sm-2.control-label(for='txtWiki') Wiki
+							.col-sm-10
+								input#txtWiki.form-control(type='text', placeholder="贴个wiki地址，查问题保平安", value="", name="wiki")
+			div.panel.panel-default
+				div.panel-heading
+					| API内容
+				div.panel-body
+					form.form-horizontal
+						.form-group
+								label.col-sm-2.control-label(for='txtHost') Data Type(*)
+								.col-sm-10
+									select#sltType.form-control(name="type")
+										option(value="json") JSON
+										option(value="xml") XML
+										option(value="html") HTML
+						.form-group
+							label.col-sm-2.control-label(for='txtContent') Content
+							.col-sm-10
+								textarea#txtDescription.form-control(placeholder="文本内容，可不填。", row="10", name="content")
+						.form-group
+							.col-sm-offset-2.col-sm-10
+								.checkbox
+									label
+										input#chkIsFilter(type='checkbox',name="isFilter", value="1")
+										| 数据过滤器
+						.form-group#divFilter(style="display:none;")
+							label.col-sm-2.control-label(for='txtFilter') Filter
+							.col-sm-10
+								textarea#txtDescription.form-control(placeholder="数据过滤器", row="10", name="filter")
+						.form-group
+							.col-sm-offset-2.col-sm-10
+								button#btnSubmit.btn.btn-default(type='submit',data-id=_id ? _id : "", data-save-url=fun.uri("be/save"), data-get-url=fun.uri("be/get")) Submit
+
+
+block js
+	script(type="text/javascript",src=fun.prefix("js/edit.js"))

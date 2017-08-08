@@ -3,13 +3,17 @@ var mongoose = require('mongoose');
 var MockObjectSchema = mongoose.Schema({
 	"host": String,
 	"port": Number,
-	"uri": String,
+	"path": String,
+	"example": String,
+	"wiki": String,
+
 	"name": String,
 	"description": String,
 	"creator": String,
 	"createdTime": Number,
 	"modifier": String,
 	"modifiedTime": Number,
+	
 	"type": String, // Type, json | html | xml
 	"content": String, // mock content
 	"isFilter": Number, // Does use filter function.

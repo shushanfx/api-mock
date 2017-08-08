@@ -4,8 +4,15 @@ html
 		meta(charset="UTF-8")
 		meta(name="viewport", content="width=device-width, initial-scale=1.0")
 		meta(http-equiv="X-UA-Compatible", content="ie=edge")
+		include css.pug
+		block css	
 		block title
-			title 首页
+			title #{title ? title : "首页" }
 	body
-		div#container
-		script(src="../dist/entry-index.js")
+		div.container
+			include ../component/nav.pug
+			block content
+				h1 Content #{base} #{title}
+		
+		include js.pug
+		block js

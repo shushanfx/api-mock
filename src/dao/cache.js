@@ -42,3 +42,7 @@ class Cache {
 		}
 	}
 }
+
+Cache.cache = new Cache();
+
+module.exports = exports = Cache

@@ -1,6 +1,8 @@
 var mongoose = require("mongoose");
 var config = require("config");
 var merge = require("merge");
+var debug = require("debug")("dao");
+
 
 var MockObject = require("./model/mockObject");
 
@@ -73,13 +75,14 @@ var obj = {
 		var count = 0;
 		return new Promise(function(resolve, reject){
 			MockObject.count(function(err, count){
+				debug("QueryMock: count ", count);
 				if(err){
 					reject(err);
 				}
 				else if(count == 0){
 					resolve({
-						index: _index,
-						size: _size,
+						pageIndex: _index,
+						pageSize: _size,
 						total: 0,
 						list: []
 					});
@@ -87,10 +90,10 @@ var obj = {
 				else{
 					let total = count;
 					let end = 0, start;
-					if(_index * size > total){
-						_index = Math.floor(total / size) + 1;
+					if(_index * _size > total){
+						_index = Math.floor(total / _size) + 1;
 						start = (_index - 1) * _size;
-						end = Math.min(total, _index * size);
+						end = Math.min(total, _index * _size);
 					}
 					else{
 						start = (_index - 1) * _size;
@@ -101,12 +104,14 @@ var obj = {
 							reject(err);
 						}
 						else{
-							resolve({
-								index: _index,
-								size: _size,
+							var obj = {
+								pageIndex: _index,
+								pageSize: _size,
 								total: 0,
-								list: []
-							});
+								list: list
+							};
+							debug("QueryMock obj ", obj);
+							resolve(obj);
 						}
 					});
 				}

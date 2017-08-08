@@ -3,12 +3,14 @@ var path = require("path");
 var koa = require("koa");
 var serve = require("koa-static");
 var views = require("koa-views");
+var bodyParser = require("koa-bodyparser");
 var pug = require("pug");
 var debug = require("debug")("server.js");
 var log4js = require('log4js');
-var config = require("config")
+var config = require("config");
 
 var myRouter = require("./src/router");
+var myUtil = require("./src/util");
 var app = new koa();
 var logger = null;
 var port = 0;
@@ -19,7 +21,7 @@ log4js.configure({
 });
 logger = log4js.getLogger("Server");
 
-app.use(serve("assets"));
+app.use(bodyParser());
 app.use(views(path.resolve(__dirname, "pug"), {
 	extension: "pug",
 	engineSource: {
@@ -35,7 +37,16 @@ app.use(views(path.resolve(__dirname, "pug"), {
 		}
 	},
 	options: {
-		base: config.get("prefix")
+		prefix: config.get("prefix"),
+		suffix: config.get("suffix"),
+		fun: {
+			"uri": function(uri){
+				return myUtil.uri(uri);	
+			},
+			"prefix": function(uri){
+				return myUtil.uri(uri, true);
+			}
+		}
 	}
 }));
 myRouter.register(app);

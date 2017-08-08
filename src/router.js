@@ -9,6 +9,7 @@ var config = require("config");
 var Wrapper = require("./bean/wrapper");
 var MyRouter = require("./router/index.js");
 var MyDao = require("./dao/dao.js");
+var FileServe = require("./fileMiddle");
 
 
 var logger = log4js.getLogger("Router");
@@ -26,6 +27,7 @@ const ALLOW_METHOD = {
 
 exports.register = function register(app) {
 	MyDao.init();
+	app.use(FileServe(["assets", "static"], config.get("prefix")));
 	app.use(Wrapper.use());
 	let list = MyRouter;
 	list.forEach(item => {

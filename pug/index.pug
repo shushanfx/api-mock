@@ -1,1 +1,38 @@
-include include/page
+extends include/page.pug
+
+block content
+	div.mb-20
+		form.form-inline
+			.form-group
+				label(for='txtName') Name: 
+				input#txtName.form-control(type='text')
+			.form-group
+				label(for='txtDomain') &nbsp;Domain: 
+				input#txtDomain.form-control(type='text')
+			.form-group
+				label(for='txtPath') &nbsp;Path: 
+				input#txtPath.form-control(type='text')
+				input#txtPageIndex.form-control(type='hidden')
+				input#txtPageSize.form-control(type='hidden')
+			| &nbsp;
+			button#btnSearch.btn.btn-default(type='submit',data-search-url=fun.uri("be/list")) Search
+			| &nbsp;
+			a#btnAdd.btn.btn-primary(href=fun.uri("add")) Add
+	div.mb-20
+		table.table.table-striped
+			thead
+				tr
+					th #
+					th Name
+					th Domain
+					th Path
+					th type
+					th Options
+			tbody
+				tr
+					td(colspan="6")
+						div.text-center(style="height:200px; padding-top: 90px;")
+							| No Data
+
+block js
+	script(type="text/javascript", src=fun.prefix("js/index.js"))

@@ -1,3 +1,4 @@
 module.exports = exports = [
-	require("./indexRouter")
+	require("./indexRouter"),
+	require("./beRouter")
 ]

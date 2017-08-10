@@ -1,2 +1,4 @@
 script(src=(prefix + 'plugin/jquery-3.2.1/jquery.min.js'))
 script(src=(prefix + 'plugin/bootstrap-3.3.7/js/bootstrap.min.js'))
+script(type="text/javascript").
+	(function(global){global.mock = {"prefix": "#{prefix}", "suffix": "#{suffix}", uri: function uri(uri,withoutSuffix){var arr=[];if(this.prefix&&this.prefix!="."&&this.prefix!="./"){arr.push(this.prefix);}else{arr.push(this.prefix);}if(uri&&uri!="/"){arr.push(uri);if(!withoutSuffix&&this.suffix){arr.push(this.suffix);}}return arr.join("");}}})(window);

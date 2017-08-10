@@ -2,10 +2,61 @@ var mongoose = require("mongoose");
 var config = require("config");
 var merge = require("merge");
 var debug = require("debug")("dao");
+var urlPattern = require("url-pattern");
+
+var Cache = require("./cache");
 
 
 var MockObject = require("./model/mockObject");
+var cacheObject = new Cache();
 
+function appendCache(entity){
+	let list = null;
+	if(entity && entity["_id"]){
+		list = cacheObject.get("CacheObject");
+		if(list){
+			list.push(entity);
+		}
+	}
+}
+function updateCache(entity){
+	var list = null;
+	var found = -1;
+	if(entity && entity["_id"]){
+		list = cacheObject.get("CacheObject");
+		if(list && list.length > 0){
+			for(let i =0; i < list.length; i ++ ){
+				let item = list[i];
+				if(item && item._id === entity._id){
+					found = i;
+					break ;
+				}
+			}
+			if(found != -1){
+				list[found] = entity;
+			}
+		}
+	}
+}
+function removeCache(entity){
+	var list = null;
+	var found = -1;
+	if(entity && entity["_id"]){
+		list = cacheObject.get("CacheObject");
+		if(list && list.length > 0){
+			for(let i =0; i < list.length; i ++ ){
+				let item = list[i];
+				if(item && item._id === entity._id){
+					found = i;
+					break ;
+				}
+			}
+			if(found != -1){
+				list.splice(found, 1);
+			}
+		}
+	}
+}
 
 var obj = {
 	/**
@@ -25,12 +76,15 @@ var obj = {
 						reject(err);
 					}
 					else{
-						merge(true, entity, mock);
+						Object.keys(mock).forEach(item => {
+							entity[item] = mock[item];
+						});
 						entity.save(function(err){
 							if(err){
 								reject(err)
 							}
 							else{
+								updateCache(entity);
 								resolve(entity);
 							}
 						})
@@ -46,6 +100,7 @@ var obj = {
 						reject(err);
 					}
 					else{
+						appendCache(entity);
 						resolve(entity);
 					}
 				})
@@ -71,7 +126,7 @@ var obj = {
 	},
 	queryMock:async function(mock, pageIndex, pageSize, order){
 		var _index = pageIndex >= 1 ? pageIndex : 1, 
-			_size = pageSize >= 1 ? pageSize : config.get("pager.size");
+			_size = pageSize >= 1 ? 1 * pageSize : config.get("pager.size");
 		var count = 0;
 		return new Promise(function(resolve, reject){
 			MockObject.count(function(err, count){
@@ -107,7 +162,7 @@ var obj = {
 							var obj = {
 								pageIndex: _index,
 								pageSize: _size,
-								total: 0,
+								total: total,
 								list: list
 							};
 							debug("QueryMock obj ", obj);
@@ -118,6 +173,56 @@ var obj = {
 			});
 		});
 	},
+	queryAll: async function(){
+		return new Promise(function(resolve, reject){
+			MockObject.find({}, function(err, list){
+				if(err){
+					reject(err);
+				}
+				else{
+					if(list && list.length > 0){
+						resolve(list);
+					}
+					else{
+						resolve([]);
+					}
+				}
+			});
+		})
+	},
+	query: async function(host, port, path){
+		var list = cacheObject.get("CacheObject");
+		var isFound = false, foundItem = null;
+		debug("Find mock item by ", host, port, path);
+		if(!list){
+			list = await this.queryAll();
+			cacheObject.set("CacheObject", list);
+		}
+		if(list && list.length > 0){
+			list.forEach(item => {
+				if(isFound){
+					return item;
+				}
+				if(item && item.host == host 
+					&& item.port == port){
+					// found same host
+					if(!item.pattern){
+						// init pattern with url-match
+						item.pattern = new urlPattern(item.path);
+					}
+					let matched = item.pattern.match(path);
+					if(matched){
+						isFound = true;
+						foundItem = {
+							item,
+							param: matched
+						}
+					}
+				}
+			});
+		}
+		return foundItem;
+	},
 	delMock: function(mockId){
 		return new Promise(function(resolve, reject){
 			MockObject.findByIdAndRemove(mockId, function(err, res){
@@ -125,6 +230,7 @@ var obj = {
 					reject(err);
 				}
 				else{
+					removeCache({"_id": mockId});
 					resolve(res);
 				}
 			})

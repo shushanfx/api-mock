@@ -4,35 +4,38 @@ block content
 	div.mb-20
 		form.form-inline
 			.form-group
-				label(for='txtName') Name: 
+				label(for='txtName') Name: &nbsp;
 				input#txtName.form-control(type='text')
 			.form-group
-				label(for='txtDomain') &nbsp;Domain: 
+				label(for='txtDomain') &nbsp; Domain: &nbsp; 
 				input#txtDomain.form-control(type='text')
 			.form-group
-				label(for='txtPath') &nbsp;Path: 
+				label(for='txtPath') &nbsp; Path: &nbsp;
 				input#txtPath.form-control(type='text')
 				input#txtPageIndex.form-control(type='hidden')
 				input#txtPageSize.form-control(type='hidden')
 			| &nbsp;
-			button#btnSearch.btn.btn-default(type='submit',data-search-url=fun.uri("be/list")) Search
+			button#btnSearch.btn.btn-default(type='submit',data-search-url=mock.uri("be/list")) Search
 			| &nbsp;
-			a#btnAdd.btn.btn-primary(href=fun.uri("add")) Add
+			a#btnAdd.btn.btn-primary(href=mock.uri("add"), target="_blank") Add
 	div.mb-20
-		table.table.table-striped
+		table.table.table-striped.table-bordered
 			thead
 				tr
 					th #
 					th Name
 					th Domain
 					th Path
-					th type
+					th Type
+					th Fiter
 					th Options
 			tbody
 				tr
 					td(colspan="6")
 						div.text-center(style="height:200px; padding-top: 90px;")
 							| No Data
-
+		div.panel.panel-default
+			.panel-body
+				#divPager(aria-label="Page navigation",style="display:none;")
 block js
-	script(type="text/javascript", src=fun.prefix("js/index.js"))
+	script(type="text/javascript", src=mock.uri("js/index.js", true))

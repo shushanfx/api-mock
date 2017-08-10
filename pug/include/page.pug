@@ -11,8 +11,20 @@ html
 	body
 		div.container
 			include ../component/nav.pug
+
+		div#divContainer.container.container-content
 			block content
-				h1 Content #{base} #{title}
+				h1 开发中，敬请期待...
 		
+
+		footer.container-footer
+			.container
+				.row
+					.col-sm-12.text-center
+						p Mock platform to mock api.
+					.col-sm-12.text-center
+						a(href="https://github.com/shushanfx/api-mock", target="_blank", title="api-mock") Git地址
+						| &nbsp;|&nbsp;
+						a(href="http://weibo.com/3610809802/profile?topnav=1&wvr=6&is_all=1", target="_blank", title="青春梦里烧") 微博
 		include js.pug
 		block js

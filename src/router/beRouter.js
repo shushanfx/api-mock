@@ -9,9 +9,8 @@ function buildReg(str){
 		_s = _s.trim();
 	}
 	if(_s){
-		return new RegExp(s);
+		return new RegExp(_s);
 	}
-	
 }
 
 function buildQuery(obj){
@@ -58,7 +57,14 @@ class BeRouter extends AbstractRouter {
 			}
 		}, { method: "put"})
 		.json("be/del", async function(ctx){
-
+			var obj = ctx.request.body;
+			if(obj && obj._id){
+				let mock = await dao.delMock(obj._id);
+				ctx.body = Result.success(null, mock);
+			}
+			else{
+				ctx.body = Result.illegal();
+			}
 		}, { method: "del"})
 		.json("be/list", async function(ctx){
 			var obj = ctx.query;

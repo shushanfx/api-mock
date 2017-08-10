@@ -9,6 +9,7 @@ var config = require("config");
 var Wrapper = require("./bean/wrapper");
 var MyRouter = require("./router/index.js");
 var MyDao = require("./dao/dao.js");
+var MyMock = require("./mockMiddle");
 var FileServe = require("./fileMiddle");
 
 
@@ -62,6 +63,7 @@ exports.register = function register(app) {
 			logger.error(e);
 		}
 	});
+	app.use(MyMock());
 	// app.use(async function (ctx, next) {
 	// 	var wrapper = ctx.wrapper;
 	// 	wrapper.notFound(30);

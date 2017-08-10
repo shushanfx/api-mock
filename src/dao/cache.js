@@ -26,10 +26,10 @@ class Cache {
 		}
 	}
 	/**
-	 * 
-	 * @param {String} key 
+	 * set cache value.
+	 * @param {String} key
 	 * @param {any} value 
-	 * @param {Number} timeout Default is the system timeout.
+	 * @param {Number} [timeout] Default is the system timeout.
 	 */
 	set(key, value, timeout){
 		var t = timeout || this.timeout;
@@ -39,6 +39,11 @@ class Cache {
 				value: value,
 				expired: t + time
 			};
+		}
+	}
+	expire(key){
+		if(this._obj && this._obj[key]){
+			this._obj[key].expired = -1;
 		}
 	}
 }

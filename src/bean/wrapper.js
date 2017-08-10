@@ -16,38 +16,54 @@ class Wrapper {
 	 * @param {*Number} percent If use a random function.
 	 */
 	async delay(timeout, percent) {
-		var me = this;
-		if (typeof percent === "number") {
-			let random = Math.random() * 100;
-			if (random <= percent) {
-				return Promise.resolve(me);
-			}
+		var random = this.random(percent);
+		if(random && timeout > 0){
+			this._delay += timeout;
+			return new Promise(function (resolve) {
+				setTimeout(function () {
+					resolve();
+				}, timeout);
+			});
 		}
-		me._delay += timeout;
-		return new Promise(function (resolve) {
-			setTimeout(function () {
-				resolve(me);
-			}, timeout);
-		});
+		else{
+			return Promise.resolve();
+		}
 	}
 
-	status(per, info) {
+	status(info, per) {
+		let random = this.random(per);
 		if (this._status != 200) {
 			return this;
 		}
-		let random = Math.random() * 100;
-		if (random <= per) {
+		if (random) {
 			this._status = info;
 			throw new WrapError("Mock error by code: " + this._status);
 		}
 		return this;
 	}
+	run(fun, per){
+		let random = this.random(per);
+		if(random){
+			if(typeof fun === "function"){
+				fun();
+			}
+		}
+		return this;
+	}
+	random(per){
+		let _per = per >= 0 ? per: 100;
+		let random = Math.random() * 100;
+		if(random <= _per){
+			return true;
+		}
+		return false;
+	}
 
 	notFound(per) {
-		return this.status(per, Wrapper.NOT_FOUND);
+		return this.status(Wrapper.NOT_FOUND, per);
 	}
 	serverException(per) {
-		return this.status(per, Wrapper.SERVER_EXCEPTION);
+		return this.status(Wrapper.SERVER_EXCEPTION, per);
 	}
 }
 

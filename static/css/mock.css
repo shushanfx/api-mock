@@ -7,3 +7,27 @@
 .m5{
 	margin: 5px;
 }
+
+.container-content {
+	min-height: 500px;
+}
+.container-footer {
+	background: #202020;
+    padding: 35px 0 15px 0;
+    color: #959595;
+}
+
+.copyright {
+	background: #111;
+    font-size: 13px;
+    text-align: center;
+    color: #555;
+    padding-top: 14px;
+    padding-bottom: 20px;
+    border-top: 1px solid #303030;
+}
+
+.CodeMirror {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

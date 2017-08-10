@@ -59,7 +59,10 @@ block content
 						.form-group
 							label.col-sm-2.control-label(for='txtContent') Content
 							.col-sm-10
-								textarea#txtDescription.form-control(placeholder="文本内容，可不填。", row="10", name="content")
+								pre.span12
+									| code 样式
+								.span12
+									textarea#txtDescription.form-control(placeholder="文本内容，可不填。", row="10", name="content")
 						.form-group
 							.col-sm-offset-2.col-sm-10
 								.checkbox
@@ -69,11 +72,52 @@ block content
 						.form-group#divFilter(style="display:none;")
 							label.col-sm-2.control-label(for='txtFilter') Filter
 							.col-sm-10
-								textarea#txtDescription.form-control(placeholder="数据过滤器", row="10", name="filter")
+								pre.span12
+									p 自定义处理逻辑，可以定义一些自定义处理逻辑，传入参数如下：
+									p
+										code ctx
+										| : 当前请求的ctx实例，内容请参考
+										code koa2
+										| 官方文档，常用对象/方法包括：
+										p(style="padding-left: 15px;")
+											code ctx.query
+											| , 获取query信息；
+										p(style="padding-left: 15px;")
+											code ctx.param
+											| , 获取自定义映射uri参数；
+									p
+										code mock
+										| : 框架封装对象，可以通过它操作对请求做进一步处理，常用的对象/方法包括：
+										p(style="padding-left: 15px;")
+											code mock.query
+											| , 同
+											code ctx.query
+										p(style="padding-left: 15px;") 
+											code mock.param
+											|, 同
+											code ctx.query
+										p(style="padding-left: 15px;")
+											code mock.status(status, percent) 
+											| 按照一定概率(percent)返回指定的状态码(status)，如
+											code mock.status(500, 20)
+											| , 20%的几率返回500；
+										p(style="padding-left: 15px;")
+											code mock.delay(delaytime, percent)
+											| 按照一定的概率(percent)，延迟指定delaytime ms，如
+											code await mock.delay(1000, 10)
+											| , 10的几率延迟1000ms
+								.span12
+									textarea#txtFilter.form-control(placeholder="数据过滤器", row="10", name="filter")
 						.form-group
 							.col-sm-offset-2.col-sm-10
-								button#btnSubmit.btn.btn-default(type='submit',data-id=_id ? _id : "", data-save-url=fun.uri("be/save"), data-get-url=fun.uri("be/get")) Submit
+								button#btnSubmit.btn.btn-default(type='submit',data-id=_id ? _id : "", data-save-url=mock.uri("be/save"), data-get-url=mock.uri("be/get")) Submit
 
 
 block js
-	script(type="text/javascript",src=fun.prefix("js/edit.js"))
+	script(type="text/javascript",src=mock.uri("plugin/codemirror-5.28.0/js/codemirror.min.js", true))
+	script(type="text/javascript",src=mock.uri("plugin/codemirror-5.28.0/js/htmlmixed.min.js", true))
+	script(type="text/javascript",src=mock.uri("plugin/codemirror-5.28.0/js/javascript.min.js", true))
+	script(type="text/javascript",src=mock.uri("plugin/codemirror-5.28.0/js/xml.min.js", true))
+	script(type="text/javascript",src=mock.uri("js/edit.js", true))
+block css
+	link(rel='stylesheet', href=mock.uri("plugin/codemirror-5.28.0/css/codemirror.min.css", true))

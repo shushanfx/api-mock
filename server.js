@@ -39,12 +39,9 @@ app.use(views(path.resolve(__dirname, "pug"), {
 	options: {
 		prefix: config.get("prefix"),
 		suffix: config.get("suffix"),
-		fun: {
-			"uri": function(uri){
-				return myUtil.uri(uri);	
-			},
-			"prefix": function(uri){
-				return myUtil.uri(uri, true);
+		mock: {
+			"uri": function(uri, withoutSuffix){
+				return myUtil.uri(uri, withoutSuffix);	
 			}
 		}
 	}

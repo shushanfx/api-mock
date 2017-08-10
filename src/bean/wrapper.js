@@ -53,7 +53,7 @@ class Wrapper {
 	random(per){
 		let _per = per >= 0 ? per: 100;
 		let random = Math.random() * 100;
-		if(random <= _per){
+		if(random < _per){
 			return true;
 		}
 		return false;

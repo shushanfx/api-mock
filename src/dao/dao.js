@@ -214,6 +214,9 @@ var obj = {
 					if(matched){
 						isFound = true;
 						foundItem = {
+							port,
+							host,
+							path,
 							item,
 							param: matched
 						}

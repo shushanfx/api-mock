@@ -68,3 +68,5 @@ server-override.json
 assets
 assets_pug
 
+config/local.json
+package-lock.json

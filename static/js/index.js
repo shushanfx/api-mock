@@ -70,7 +70,7 @@ $(function(){
 				html.push("<td>", item.host, "</td>");
 				html.push("<td>", item.path, "</td>");
 				html.push("<td>", item.type, "</td>");
-				html.push("<td>", item.isFilter == 1 ? '<span class="label label-default">N</span>' : '<span class="label label-success">Y</span>', "</td>");
+				html.push("<td>", item.isFilter == 1 ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>', "</td>");
 				html.push("<td>", buildOptions(item), "</td>");
 				html.push("</tr>");
 			});

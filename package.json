@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/shushanfx/api-mock#readme",
   "dependencies": {
-    "ajv": "^5.2.2",
     "config": "^1.26.1",
     "glob": "^7.1.2",
     "gulp-clean": "^0.3.2",

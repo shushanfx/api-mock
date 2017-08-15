@@ -20,28 +20,33 @@ API Mock平台，为了解决如下需求：
 ### 编辑页
 新增&修改均会进入编辑，可以对api的属性、内容等进行编辑。
 ![编辑01](./doc/edit1.png)
-个字段定义如下：      
+各字段定义如下：      
 **基本信息**
-名称 | 对应字段 | 描述 | 必填
----------|----------|---------|--------
- Name | name | API接口的名称 | Y
- Creatator | creator | 创建者信息，嵌入用户系统后需要实现该字段 | N
- Description | description | 接口的描述信息，后续考虑支持markdown语法 | N
+
+| 名称 | 对应字段 | 描述 | 必填 |
+| ---------|----------|---------|-------- |
+|  Name | name | API接口的名称 | Y |
+|  Creatator | creator | 创建者信息，嵌入用户系统后需要实现该字段 | N |
+|  Description | description | 接口的描述信息，后续考虑支持markdown语法 | N |
+
 **API信息**
-名称 | 对应字段 | 描述 | 必填
----------|----------|---------|--------
- Host | host | 需要mock的服务器域名，如`www.iqiyi.com`等 | Y
- Port | port | 需要mock的服务器端口，默认80 | Y
- Path | path | 接口的映射规则，如`/:name.do`、`/index.action`等，注意要使用`/`开头 | Y
- Example | example | path的样例，允许带参数，如`/index.do?key=123` | N
- Wiki | wiki | 真实接口的wiki地址。 | N
+
+| 名称 | 对应字段 | 描述 | 必填 |
+| ---------|----------|---------|-------- |
+| Host | host | 需要mock的服务器域名，如`www.iqiyi.com`等 | Y |
+| Port | port | 需要mock的服务器端口，默认80 | Y |
+| Path | path | 接口的映射规则，如`/:name.do`、`/index.action`等，注意要使用`/`开头 | Y |
+| Example | example | path的样例，允许带参数，如`/index.do?key=123` | N |
+| Wiki | wiki | 真实接口的wiki地址。 | N |
+
 **API内容**
- 名称 | 对应字段 | 描述 | 必填
----------|----------|---------|--------
- Data Type | type | 接口的数据类型，支持json|html|xml等格式 | Y
- Content | content | 接口的内容 | N
- 数据过滤器 | isFilter | 是否开启过滤器(filter) | N
- Filter | filter | 过滤器脚本，请参考下文的`自定义Filter` | N
+
+| 名称 | 对应字段 | 描述 | 必填 |
+| ---------|----------|---------|-------- |
+| Data Type | type | 接口的数据类型，支持json|html|xml等格式 | Y |
+| Content | content | 接口的内容 | N |
+| 数据过滤器 | isFilter | 是否开启过滤器(filter) | N |
+| Filter | filter | 过滤器脚本，请参考下文的`自定义Filter` | N |
  
 
 ### 自定义Filter
@@ -69,9 +74,9 @@ mock实例对象，提供一系列辅助方法。
 > **mock.cwd**: 当前工程的目录    
 > **mock.request**: request对象，可用于发送http请求，如`await mock.request("http://www.iqiyi.com/a.json").then(function(){})`，详细文档请参考[request-promise](https://github.com/request/request-promise)     
 > **mock.require**: *warnning，等同于`require`函数，不建议使用*，后续会增加配置功能，禁止嵌入该属性。     
-> **mock.delay(timeout, percent)**: 有指定百分比(percent,0~100)的概率延迟指定时间(timeout ms)，如果percent未提供，则表示100. 如`await mock.delay(1000, 20)`，有20%的概率延迟1000ms。     
-> **mock.status(status, percent)**: 有指定百分比(percent,0~100)的概率返回指定的状态码，如果percent未提供，则表示100。 如`mock.status(500, 30)`，有30%的概率返回500的状态码。     
-> **mock.run(fun, percent)**: 有指定百分比(percent,0~100)的概率执行指定函数(fun)，如果percent未提供，则表示100。如`mock.run(function(){mock.result._id=1;}, 20)`。     
+> **mock.delay(timeout, percent)**: 有指定百分比(percent,0-100)的概率延迟指定时间(timeout ms)，如果percent未提供，则表示100. 如`await mock.delay(1000, 20)`，有20%的概率延迟1000ms。     
+> **mock.status(status, percent)**: 有指定百分比(percent,0-100)的概率返回指定的状态码，如果percent未提供，则表示100。 如`mock.status(500, 30)`，有30%的概率返回500的状态码。     
+> **mock.run(fun, percent)**: 有指定百分比(percent,0-100)的概率执行指定函数(fun)，如果percent未提供，则表示100。如`mock.run(function(){mock.result._id=1;}, 20)`。     
 > **mock.random(percent)**: 判断是否在percent之内，之内则返回true，否则返回失败。如`mock.random(10)`，`mock.delay`/`mock.status`/`mock.run`均依赖该方法。      
 
 **注意**
@@ -94,13 +99,27 @@ mock.result = result;
 * 数据安装，mongodb安装，完成之后执行`init/db.js`的脚本即可
 
 * 下载代码，并运行
-```bash
-git clone https://github.com/shushanfx/api-mock.git
-cd api-mock
-# 如果需要配置数据库，请自行配置
-npm install && npm start
-```
+	```bash
+	git clone https://github.com/shushanfx/api-mock.git
+	cd api-mock
+	# 如果需要配置数据库，请自行配置
+	npm install && npm start
+	```
 
+## 感谢
+项目中引入了一些开源库，感谢相关开源项目以及开源的同学，你们太伟大了！
+* config
+* glob
+* koa
+* koa-serve
+* koa-bodyparser
+* merge
+* mockjs
+* mongoose
+* pug
+* url-pattern
+
+> *tips: 由于篇幅限制，只列举了部分引用项目。*
 
 ## LICENSE
-MIMT
+MIT

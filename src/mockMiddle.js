@@ -119,7 +119,7 @@ function renderToBody(ctx, obj){
 				ctx.body = ["try{\n\t", callback, "('", result, "');\n}catch(e){}"].join("");
 				break;
 			default:
-				ctx.body = ["try{\n\t", callback, "(", result, ");\n}catch(e){}"].join("");
+				ctx.body = ["try{\n\t", callback, "(", typeof(result) === "object" ? JSON.stringify(result, null, 4) : result, ");\n}catch(e){}"].join("");
 		}
 	}
 	else{

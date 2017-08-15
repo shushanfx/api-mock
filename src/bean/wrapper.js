@@ -1,10 +1,17 @@
 var log4js = require('log4js');
 var stringFormat = require("string-format");
 var WrapError = require("./wrapperError");
+var MockJS = require("mockjs");
 
 var logger = log4js.getLogger("Wrapper");
 class Wrapper {
 	constructor(ctx) {
+		// Object.keys(MockJS).forEach(item => {
+		// 	logger.info(`Inject ${item} to wrap instance.`);
+		// 	this[item] = MockJS[item];
+		// });
+		
+		this.MockJS = MockJS;
 		this.ctx = ctx;
 		this._status = Wrapper.OK;
 		this._delay = 0;

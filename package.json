@@ -36,6 +36,7 @@
     "koa-views": "^6.0.2",
     "log4js": "^2.3.3",
     "merge": "^1.2.0",
+    "mockjs": "^1.0.1-beta3",
     "mongoose": "^4.11.5",
     "pug": "^2.0.0-rc.3",
     "request": "^2.81.0",

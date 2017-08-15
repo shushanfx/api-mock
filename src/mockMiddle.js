@@ -55,15 +55,21 @@ module.exports = function(){
 				mock.co = co;
 				mock.request = request;
 
+				// check whether filter is open.
 				if(obj.item.isFilter && obj.item.filter){
-					// is open filter check.
-					if(!obj.item.__filter){
-						obj.item.__filter = new AsyncFunction("ctx", "mock", obj.item.filter);
+					if(! obj.item.__filter){
+						obj.item.__filter = new AsyncFunction("ctx", "mock", 
+							`with(mock){ ${obj.item.filter} }`);
 					}
 					if(obj.item.__filter){
 						try{	
 							if(obj.item.type == "json"){
-								mock.result = (new Function(`try{ return (${obj.result});} catch(e){return {};}`))();
+								if(obj.result){
+									mock.result = (new Function(`try{ return (${obj.result});} catch(e){return {};}`))();
+								}
+								else{
+									mock.result = {};
+								}
 							}
 							await obj.item.__filter.call(mock, ctx, mock);
 						}

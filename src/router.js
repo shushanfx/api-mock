@@ -6,7 +6,6 @@ var log4js = require("log4js");
 var stringFormat = require("string-format");
 var config = require("config");
 
-var Wrapper = require("./bean/wrapper");
 var MyRouter = require("./router/index.js");
 var MyDao = require("./dao/dao.js");
 var MyMock = require("./mockMiddle");
@@ -29,7 +28,6 @@ const ALLOW_METHOD = {
 exports.register = function register(app) {
 	MyDao.init();
 	app.use(FileServe(["assets", "static"], config.get("prefix")));
-	app.use(Wrapper.use());
 	let list = MyRouter;
 	list.forEach(item => {
 		try {
@@ -64,15 +62,4 @@ exports.register = function register(app) {
 		}
 	});
 	app.use(MyMock());
-	// app.use(async function (ctx, next) {
-	// 	var wrapper = ctx.wrapper;
-	// 	wrapper.notFound(30);
-	// 	wrapper.serverException(20);
-	// 	await wrapper.delay(2000);
-	// 	await wrapper.delay(2000, 20);
-	// 	await wrapper.delay(2000, 30);
-
-	// 	// ctx.body = "Test Succsss";
-	// 	await next();
-	// });
 }

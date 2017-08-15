@@ -5,6 +5,7 @@ var co = require("co")
 var request = require("request-promise");
 var log4js = require("log4js");
 
+var Wrapper = require("./bean/wrapper");
 var WrapperError = require("./bean/wrapperError");
 var dao = require("./dao/dao");
 var logger = log4js.getLogger("MockMiddle");
@@ -22,12 +23,15 @@ module.exports = function(){
 				host = ctx.hostname,
 				port = ctx.port;
 			
+			var isWithMockParameter = false;
 			var query = ctx.query;
 			if(ctx.query["mock-host"]){
 				host = ctx.query["mock-host"];
+				isWithMockParameter = true;
 			}
 			if(ctx.query["mock-port"]){
 				port = ctx.query["mock-port"];
+				isWithMockParameter = true;
 			}
 			if(ctx.query["mock-path"]){
 				path = ctx.query["mock-path"];
@@ -37,13 +41,15 @@ module.exports = function(){
 							querystring.parse(path.substring(path.indexOf("?") + 1)));
 					path = newPath;
 				}
+				isWithMockParameter = true;
 			}
 			port = port || 80;
 			let obj = await dao.query(host, port, path);
 			if(obj){
+				// found ... 
 				obj.query = query;
 				obj.result = obj.item.content;
-				let mock = ctx.wrapper;
+				let mock = new Wrapper(ctx);
 				ctx.query = query;
 				ctx.param = obj.param;
 				Object.keys(obj).forEach(jtem => {
@@ -75,8 +81,14 @@ module.exports = function(){
 						}
 						catch(e){
 							// error in execute.
-							if(e instanceof WrapperError){
-								throw e;
+							if (e instanceof WrapError) {
+								if (Wrapper.MESSAGE[status]) {
+									ctx.response.body = Wrapper.MESSAGE[status];
+								}
+								else {
+									ctx.response.body = e.message;
+								}
+								ctx.response.status = status;
 							}
 							else{
 								if(ctx.state){
@@ -94,6 +106,32 @@ module.exports = function(){
 					}
 				}
 				renderToBody(ctx, mock);
+			}
+			else if(!isWithMockParameter){
+				// try to fetch from online.
+				let options = {
+					url: `${ctx.protocol}://${ctx.host}${ctx.url}`,
+					method: ctx.method,
+					headers: ctx.headers
+				};
+				if(ctx.method.toLowerCase() in 
+					{"post": 1, "put": 1, "patch": 1}){
+					options.body = ctx.request.rawBody;
+				}
+
+				try {
+					let result = await request(options)
+					renderToBody(ctx, {
+						query: ctx.query,
+						item: {
+							result	
+						}
+					});
+				} catch(e){
+					logger.error(`Fetch error from url: ${options.url} with message ${e.message}`);
+					ctx.response.status = 500;
+					ctx.response.body = "ERROR";
+				}
 			}
 		}
 		await next();

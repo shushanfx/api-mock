@@ -74,30 +74,6 @@ class Wrapper {
 	}
 }
 
-Wrapper.use = function use() {
-	return async function (ctx, next) {
-		let req = ctx.request;
-		ctx.wrapper = new Wrapper(ctx);
-		await next().catch(e => {
-			let status = ctx.wrapper._status;
-			if (e instanceof WrapError) {
-				if (Wrapper.MESSAGE[status]) {
-					ctx.response.body = Wrapper.MESSAGE[status];
-				}
-				else {
-					ctx.response.body = e.message;
-				}
-				ctx.response.status = status;
-			}
-			else {
-				throw e;
-			}
-		});
-		logger.info(stringFormat("Wrapper {0} {1} -> delay: {2}, status: {3}",
-			req.host, req.path, ctx.wrapper._delay, ctx.wrapper._status));
-	}
-}
-
 /**
  * Not found
  */

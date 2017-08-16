@@ -107,8 +107,9 @@ module.exports = function(){
 				}
 				renderToBody(ctx, mock);
 			}
-			else if(!isWithMockParameter){
+			else if(!isWithMockParameter && !ctx.headers["x-come-from"]){
 				// try to fetch from online.
+				ctx.headers["X-Come-From"] = "Mock";
 				let options = {
 					url: `${ctx.protocol}://${ctx.host}${ctx.url}`,
 					method: ctx.method,
@@ -118,7 +119,6 @@ module.exports = function(){
 					{"post": 1, "put": 1, "patch": 1}){
 					options.body = ctx.request.rawBody;
 				}
-
 				try {
 					let result = await request(options)
 					renderToBody(ctx, {
@@ -128,9 +128,9 @@ module.exports = function(){
 						}
 					});
 				} catch(e){
-					logger.error(`Fetch error from url: ${options.url} with message ${e.message}`);
-					ctx.response.status = 500;
-					ctx.response.body = "ERROR";
+					logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
+					ctx.response.status = e.statusCode || 500;
+					ctx.response.body = e.body || "Server Inner Error";
 				}
 			}
 		}
@@ -168,6 +168,9 @@ function renderToBody(ctx, obj){
 				ctx.type = type;
 				ctx.body = result;
 				break;
+			case "javascript":
+				ctx.type = "js";
+				ctx.body = result;
 			default:
 				ctx.type = "json";
 				ctx.body = typeof(result) === "object" ? JSON.stringify(result, null, 4) : result;

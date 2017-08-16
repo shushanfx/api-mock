@@ -8,6 +8,9 @@ API Mock平台，为了解决如下需求：
 
 ## 如何使用
 目前功能相对比较简单，只提供了简单的列表页面和编辑页面：
+### 样例
+样例请查看[example](./doc/example.md)
+
 ### 列表页
 ![列表页](./doc/list.png)
 具体功能如下：
@@ -47,7 +50,7 @@ API Mock平台，为了解决如下需求：
 | Content | content | 接口的内容 | N |
 | 数据过滤器 | isFilter | 是否开启过滤器(filter) | N |
 | Filter | filter | 过滤器脚本，请参考下文的`自定义Filter` | N |
- 
+
 
 ### 自定义Filter
 可以通过mock平台的编辑页自定义接口的处理，并将处理结果插入response。自定义filter的处理如下图：
@@ -81,6 +84,7 @@ mock实例对象，提供一系列辅助方法。
 
 **注意**
 对于promise对象，需要使用await关键字修饰，其中`mock.delay`和`mock.request`方法返回promise对象。
+[API详情](./doc/api.md)
 
 ## Filter样例
 ```javascript

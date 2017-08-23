@@ -82,6 +82,7 @@ module.exports = function(){
 						catch(e){
 							// error in execute.
 							if (e instanceof WrapperError) {
+								let status = mock._status;
 								if (Wrapper.MESSAGE[status]) {
 									ctx.response.body = Wrapper.MESSAGE[status];
 								}

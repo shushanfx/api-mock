@@ -16,6 +16,7 @@ class Wrapper {
 		this._status = Wrapper.OK;
 		this._delay = 0;
 		this._percent = [];
+		this.one = this.any;
 	}
 	/**
 	 * Delay for miniseconds specified by timeout
@@ -66,7 +67,7 @@ class Wrapper {
 		return false;
 	}
 	/**
-	 * Tick to return the value in the list one by one.
+	 * Tick to return a value in the list one by one.
 	 * @param {Array|String} list The list to tick.
 	 * @param {function} [callback] the callback function for each tick.
 	 * @return {Object|null} The item in the list or null if the list's length is zero or null.
@@ -106,6 +107,27 @@ class Wrapper {
 				}
 				return resultValue;
 			}
+		}
+		return null;
+	}
+	/**
+	 * random to return a value in the list.
+	 * @param {Array|String} list The list to random.
+	 * @param {function} [callback] the callback function for each random.
+	 * @return {Object|null} The item in the list or null if the list's length is zero or null.
+	*/
+	any(list, callback){
+		if(list && list.length > 0){
+			let length = list.length; 
+			let random = Math.floor(Math.random() * length);
+			let resultValue = list[random];
+			if(typeof callback === "function"){
+				let vv = callback(resultValue, random, list);
+				if(typeof vv !== "undefined"){
+					return vv;
+				}
+			}
+			return resultValue;
 		}
 		return null;
 	}

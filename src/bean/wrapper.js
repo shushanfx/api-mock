@@ -65,6 +65,50 @@ class Wrapper {
 		}
 		return false;
 	}
+	/**
+	 * Tick to return the value in the list one by one.
+	 * @param {Array|String} list The list to tick.
+	 * @param {function} [callback] the callback function for each tick.
+	 * @return {Object|null} The item in the list or null if the list's length is zero or null.
+	 */
+	tick(list, callback){
+		if(list && list.length > 0){
+			let ctx = this.ctx;
+			let cookieKey = "APIMockWrapper";
+			let length = list.length;
+			if(this.item && this.item._id){
+				cookieKey = "APIMock" + this.item._id.toString();
+			}
+			if(cookieKey){
+				let value = 0;
+				if(typeof this._tickValue === "number"){
+					value = this._tickValue;
+				}
+				else{
+					value = ctx.cookies.get(cookieKey);
+					if(value >= 0){
+						value ++;
+					}
+					else{
+						value = 0;
+					}
+					this._tickValue = value;
+					ctx.cookies.set(cookieKey, "" + value, {
+						httpOnly: true
+					});
+				}
+				let resultValue = list[value % length];
+				if(typeof callback === "function"){
+					let vv = callback(resultValue, value, list);
+					if(typeof vv !== "undefined"){
+						return vv;
+					}
+				}
+				return resultValue;
+			}
+		}
+		return null;
+	}
 
 	notFound(per) {
 		return this.status(Wrapper.NOT_FOUND, per);

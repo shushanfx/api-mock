@@ -81,7 +81,7 @@ module.exports = function(){
 						}
 						catch(e){
 							// error in execute.
-							if (e instanceof WrapError) {
+							if (e instanceof WrapperError) {
 								if (Wrapper.MESSAGE[status]) {
 									ctx.response.body = Wrapper.MESSAGE[status];
 								}
@@ -130,7 +130,7 @@ module.exports = function(){
 				} catch(e){
 					logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
 					ctx.response.status = e.statusCode || 500;
-					ctx.response.body = e.body || "Server Inner Error";
+					ctx.response.body = e.message || "Server Inner Error";
 				}
 			}
 		}

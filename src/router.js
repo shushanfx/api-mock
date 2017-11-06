@@ -9,8 +9,8 @@ var config = require("config");
 var MyRouter = require("./router/index.js");
 var MyDao = require("./dao/dao.js");
 var MyMock = require("./mockMiddle");
-var FileServe = require("./fileMiddle");
-
+// var FileServe = require("./fileMiddle");
+var FileServe = require("koa2-file-middle");
 
 var logger = log4js.getLogger("Router");
 
@@ -27,7 +27,10 @@ const ALLOW_METHOD = {
 
 exports.register = function register(app) {
 	MyDao.init();
-	app.use(FileServe(["assets", "static"], config.get("prefix")));
+	app.use(FileServe(["assets", "static"], {
+		prefix: config.get("prefix"),
+		cachedPath : true
+	}));
 	let list = MyRouter;
 	list.forEach(item => {
 		try {

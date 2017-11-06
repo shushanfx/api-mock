@@ -1,10 +1,13 @@
 $(function(){
 	var $btnSubmit = $("#btnSubmit"),
 		$isFilter = $("#chkIsFilter"),
+		$isBefore = $("#chkIsBefore"),
+		$isContent = $("#chkIsContent"),
 		$type = $("#sltType"),
 		$form = $($btnSubmit.get(0).from);
 
-	var $content = $("#divContent"),
+	var $editArea = $("#divEditArea"),
+		codeBefore = null,
 		codeContent = null,
 		codeFilter = null;
 
@@ -16,8 +19,14 @@ $(function(){
 		var isChecked = this.checked;
 		handleFilter(isChecked);
 	});
+	$isBefore.on("click", function(){
+		handleBefore(this.checked);
+	});
+	$isContent.on("click", function(){
+		handleContent(this.checked);
+	});
 	$type.on("change", function(){
-		buildEditor();
+		handleContent($isContent.is(":checked"));
 	});
 
 	getMock();
@@ -40,6 +49,43 @@ $(function(){
 			$div.hide();
 		}
 	}
+	function handleContent(isChecked){
+		var $div = $("#divContent");
+		if(isChecked){
+			$div.show();
+			var type = $("[name='type']").val();
+			var $content = $("[name='content']");
+			if(codeContent){
+				codeContent.toTextArea();
+			}
+			codeContent = CodeMirror.fromTextArea($content.get(0), {
+				mode: type,
+				lineNumbers: true,
+				mode: type === "json" ? "application/ld+json" : type
+			});
+		}
+		else{
+			$div.hide();
+		}
+	}
+	function handleBefore(isChecked){
+		var $div = $("#divBefore");
+		if(isChecked){
+			$div.show();
+			if(!$div.attr("data-init")){
+				$div.attr("data-init", "1");
+				codeBefore = CodeMirror.fromTextArea($div.find("#txtBefore")[0], {
+					mode: "javascript",
+					lineNumbers: true,
+					matchBrackets: true,
+        			autoCloseBrackets: true
+				});
+			}
+		}
+		else{
+			$div.hide();
+		}
+	}
 
 	function getMock(){
 		var url = $btnSubmit.attr("data-get-url"),
@@ -49,12 +95,12 @@ $(function(){
 			$.getJSON(url, {"_id": id}, function(result){
 				if(result && result.data){
 					rebuild(result.data);
-					buildEditor();
 				}
 			});
 		}
 		else{
-			buildEditor()
+			$isContent[0] && ( $isContent[0].checked = true);
+			handleContent(true);
 		}
 	}
 	function saveMock(){
@@ -91,32 +137,18 @@ $(function(){
 			alert("请检查输入！");
 		}
 	}
-
-	function buildEditor(){
-		var type = $("[name='type']").val();
-		var $content = $("[name='content']");
-
-		if(codeContent){
-			codeContent.toTextArea();
-		}
-		codeContent = CodeMirror.fromTextArea($content.get(0), {
-			mode: type,
-			lineNumbers: true,
-			mode: type === "json" ? "application/ld+json" : type
-		});
-	}
-
 	function buildObject(){
-		var $forms = $content.find("form");
+		var $forms = $editArea.find("form");
 		var obj = {};
-		
 		if(codeContent){
 			codeContent.save();
 		}
 		if(codeFilter){
 			codeFilter.save();
 		}
-
+		if(codeBefore){
+			codeBefore.save();
+		}
 		$forms.each(function(index, item){
 			var tmp = $(item).serializeArray();
 			if(tmp && $.isArray(tmp)){
@@ -127,34 +159,25 @@ $(function(){
 			}
 		});
 		obj.isFilter = $isFilter.is(":checked") ? "1" : "0";
+		obj.isContent = $isContent.is(":checked") ? "1": "0";
+		obj.isBefore = $isBefore.is(":checked") ? "1": "0";
 		return obj;
 	}
+
+
 	function rebuild(data){
-		var keys = null;
 		if(data){
-			keys = Object.keys(data);
-			keys.forEach(function(item){
+			Object.keys(data).forEach(function(item){
 				try{
 					var value = data[item];
 					var $item = $("[name='"  + item + "']");
-					if(item === "isFilter"){
-						if($item && $item.length){
+					if($item && $item.length > 0){
+						if(item === "isFilter" || item === "isContent" || item === "isBefore"){
 							$item[0].checked = value == 1;
-						}
-						handleFilter(value == 1);
-					}
-					else if(item === "filter"){
-						if(codeFilter){
-							codeFilter.setValue(value);
 						}
 						else{
 							$item.val(value);
-						}
-					}
-					else{
-						if($item && $item.length){
-							$item.val(value);
-						}
+						}					
 					}
 				}
 				catch(e){
@@ -162,6 +185,9 @@ $(function(){
 				}
 			});
 		}
+		handleBefore(data && data.isBefore == 1);
+		handleContent(data && data.isContent == 1);
+		handleFilter(data && data.isFilter == 1);
 	}
 
 	function checkObject(obj){

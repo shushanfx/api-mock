@@ -4,15 +4,70 @@ var merge = require("merge");
 var co = require("co")
 var request = require("request-promise");
 var log4js = require("log4js");
+var mimeType = require("mime-types");
 
 var Wrapper = require("./bean/wrapper");
 var WrapperError = require("./bean/wrapperError");
 var dao = require("./dao/dao");
+var jsonUtil = require("./util/json");
+
 var logger = log4js.getLogger("MockMiddle");
 
 var AsyncFunction = global.AsyncFunction;
 if(!AsyncFunction){
 	AsyncFunction = Object.getPrototypeOf(async function() {} ).constructor;
+}
+
+function handleException(mock, ctx, e){
+	if (e instanceof WrapperError) {
+		let status = mock._status;
+		if (Wrapper.MESSAGE[status]) {
+			ctx.response.body = Wrapper.MESSAGE[status];
+		}
+		else {
+			ctx.response.body = e.message;
+		}
+		ctx.response.status = status;
+	}
+	else{
+		ctx.status = 500;
+		ctx.body = ("发生如下错误！\n " + e.message);
+		logger.error(e);
+	}
+}
+
+function createRequestOption(mock, ctx){
+	let protocol = ctx.protocol,
+		host = mock && mock.host ? mock.host : ctx.host,
+		path = mock && mock.path ? mock.path : ctx.path,
+		port = mock && mock.port ? mock.port : ctx.port,
+		query = mock && mock.query ? mock.query : ctx.query;
+	let buildUrl = function(){
+		var arr = [protocol, "://", host, port == "80" ? "" : (":" + port),
+					path];
+		if(query){
+			let tmpArray = [];
+			Object.keys(query).forEach(key => {
+				tmpArray.push(encodeURIComponent(key) + "=" + encodeURIComponent(query[key] || ""));
+			});
+			if(tmpArray.length > 0){
+				arr.push("?", tmpArray.join("&"));
+			}
+		}
+		return arr.join("");
+	};
+	let options = {
+		url: buildUrl(protocol, host, path, port, query),
+		method: ctx.method,
+		headers: ctx.headers,
+		gzip: ctx.headers["accept-encoding"] && ctx.headers["accept-encoding"].toLowerCase().indexOf("gzip") !== -1,
+		resolveWithFullResponse: true
+	};
+	if(ctx.method.toLowerCase() in 
+		{"post": 1, "put": 1, "patch": 1}){
+		options.body = ctx.request.rawBody;
+	}
+	return options;
 }
 
 module.exports = function(){
@@ -25,6 +80,7 @@ module.exports = function(){
 			
 			var isWithMockParameter = false;
 			var query = ctx.query;
+
 			if(ctx.query["mock-host"]){
 				host = ctx.query["mock-host"];
 				isWithMockParameter = true;
@@ -45,13 +101,22 @@ module.exports = function(){
 			}
 			port = port || 80;
 			let obj = await dao.query(host, port, path);
+			let mock = new Wrapper(ctx);
+
+			let mockResult = null;
+			let mockException = false;
+			let mockBeforeFunction = null;
+			let mockAfterFunction = null;
+			let mockReturnImmediately = false;
+			let mockFetchResponse = null;
+
 			if(obj){
 				// found ... 
-				obj.query = query;
-				obj.result = obj.item.content;
-				let mock = new Wrapper(ctx);
 				ctx.query = query;
 				ctx.param = obj.param;
+
+				mock.query = query;
+				mock.type = obj.item.type;
 				Object.keys(obj).forEach(jtem => {
 					mock[jtem] = obj[jtem];
 				});
@@ -61,78 +126,121 @@ module.exports = function(){
 				mock.co = co;
 				mock.request = request;
 
-				// check whether filter is open.
+				if(obj.item.isBefore && obj.item.onBefore){
+					// bofore 任务
+					if(! obj.item.__onBefore){
+						obj.item.__onBefore = new AsyncFunction("ctx", "mock", 
+						`with(mock){ ${obj.item.onBefore} }`);
+					}
+					mockBeforeFunction = obj.item.__onBefore;
+				}
+				if(obj.item.isContent && obj.item.content){
+					// from content
+					mockResult = obj.item.content;
+				}
+				// after function.
 				if(obj.item.isFilter && obj.item.filter){
-					if(! obj.item.__filter){
-						obj.item.__filter = new AsyncFunction("ctx", "mock", 
+					if(! obj.item.__after){
+						obj.item.__after = new AsyncFunction("ctx", "mock", 
 							`with(mock){ ${obj.item.filter} }`);
 					}
-					if(obj.item.__filter){
-						try{	
-							if(obj.item.type == "json"){
-								if(obj.result){
-									mock.result = (new Function(`try{ return (${obj.result});} catch(e){return {};}`))();
-								}
-								else{
-									mock.result = {};
-								}
-							}
-							await obj.item.__filter.call(mock, ctx, mock);
-						}
-						catch(e){
-							// error in execute.
-							if (e instanceof WrapperError) {
-								let status = mock._status;
-								if (Wrapper.MESSAGE[status]) {
-									ctx.response.body = Wrapper.MESSAGE[status];
-								}
-								else {
-									ctx.response.body = e.message;
-								}
-								ctx.response.status = status;
+					mockAfterFunction = obj.item.__after;
+				}
+			}
+			if(mockBeforeFunction){
+				try{	
+					await mockBeforeFunction.call(mock, ctx, mock);
+				}
+				catch(e){
+					mockException = true;
+					handleException(mock, ctx, e);
+				}
+			}
+			// handle content or from url.
+			if(!mockException && mockResult){
+				mock.result = mockResult;
+			}
+			else if(!mockResult && !ctx.headers["x-come-from"]){
+				ctx.headers["X-Come-From"] = "Mock";
+				let options = createRequestOption(mock, ctx);
+				logger.info(`${options.method} -> ${options.url}`);
+				try {
+					let response = await request(options);
+					if(response){
+						let ext = mimeType.extension(response.headers["content-type"]);
+						mockFetchResponse = response;
+						if(mockAfterFunction && response.statusCode == 200
+							&& (ext === "text" || ext === "html" || ext === "js" || ext === "json"
+							|| ext === "xml"
+							|| ext === "css" || ext === false)){
+							ext = ext === false ? "text" : ext;
+							if(ext === "text" || ext === "html" || ext === "js"){
+								mock.result = jsonUtil.getFromString(response.body);
 							}
 							else{
-								if(ctx.state){
-									ctx.state.isSet = true;
-								}
-								else{
-									ctx.state = {isSet : true};
-								}
-								ctx.status = 500;
-								ctx.message = e.message;
-								ctx.body = "发生如下错误！\n " + e.message;
-								logger.error(e);
+								mock.result = response.body;
 							}
 						}
-					}
-				}
-				renderToBody(ctx, mock);
-			}
-			else if(!isWithMockParameter && !ctx.headers["x-come-from"]){
-				// try to fetch from online.
-				ctx.headers["X-Come-From"] = "Mock";
-				let options = {
-					url: `${ctx.protocol}://${ctx.host}${ctx.url}`,
-					method: ctx.method,
-					headers: ctx.headers
-				};
-				if(ctx.method.toLowerCase() in 
-					{"post": 1, "put": 1, "patch": 1}){
-					options.body = ctx.request.rawBody;
-				}
-				try {
-					let result = await request(options)
-					renderToBody(ctx, {
-						query: ctx.query,
-						item: {
-							result	
+						else{
+							// return immediately
+							mockReturnImmediately = true;
 						}
-					});
+					}
+					else{
+						// 没有返回东西
+						mockException = true;
+					}
 				} catch(e){
+					mockException = true;
 					logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
 					ctx.response.status = e.statusCode || 500;
 					ctx.response.body = e.message || "Server Inner Error";
 				}
+			}
+			else{
+				// not found
+				mockException = true;
+			}
+			if(!mockReturnImmediately && !mockException && mockAfterFunction){
+				try{	
+					if(mock.item.type == "json"){
+						if(mock.result){
+							mock.result = (new Function(`try{ return (${mock.result});} catch(e){return {};}`))();
+						}
+						else{
+							mock.result = {};
+						}
+					}
+					await mockAfterFunction.call(mock, ctx, mock);
+				}
+				catch(e){
+					// error in execute.
+					mockException = true;
+					handleException(mock, ctx, e);
+				}
+			}
+			if(!mockException && mockFetchResponse){
+				let body = mockFetchResponse.body;
+				let headers = mockFetchResponse.headers;
+				if(headers){
+					Object.keys(headers).forEach(key => {
+						if(key === "content-encoding" && typeof headers[key] === "string"){
+							// 去掉gzip压缩的情况
+							return ;	
+						}
+						if(key === "content-length" && !mockReturnImmediately){
+							return ;
+						}
+						ctx.set(key, headers[key]);
+					});
+				}
+				if(mockReturnImmediately){
+					ctx.body = body;
+					ctx.status = mockFetchResponse.statusCode || "200";	
+				}
+			}
+			if(!mockException && !mockReturnImmediately && mock.result){
+				renderToBody(ctx, mock);
 			}
 		}
 		await next();

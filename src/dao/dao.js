@@ -5,6 +5,7 @@ var debug = require("debug")("dao");
 var urlPattern = require("url-pattern");
 
 var Cache = require("./cache");
+var str2array = require("../util/str2array");
 
 
 var MockObject = require("./model/mockObject");
@@ -181,7 +182,11 @@ var obj = {
 				}
 				else{
 					if(list && list.length > 0){
-						resolve(list);
+						resolve(list.map(item => {
+							item.projectList = str2array.str2array(item.project);
+							item.hostList = str2array.str2array(item.host);
+							return item;
+						}));
 					}
 					else{
 						resolve([]);
@@ -203,7 +208,7 @@ var obj = {
 				if(isFound){
 					return item;
 				}
-				if(item && item.host == host 
+				if(item && item.hostList.indexOf(host) != -1 
 					&& item.port == port){
 					// found same host
 					if(!item.pattern){
@@ -238,6 +243,23 @@ var obj = {
 				}
 			})
 		})
+	},
+	domain: {
+		getByID: function(id, callback){
+
+		},
+		query: function(domain, page, callback){
+
+		},
+		save: function(domain, callback){
+
+		},
+		update: function(domain, callback){
+
+		},
+		remove: function(domain, callback){
+
+		}
 	}
 };
 

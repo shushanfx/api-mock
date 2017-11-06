@@ -59,6 +59,15 @@ $(function(){
 	}
 
 	function buildList(result){
+		var show = function(str){
+			if(typeof str === "string"){
+				return str.split(",").map(function(value){
+					return "<p>" + value + "<p>";
+				}).join("");
+			}
+			return "-";
+		}
+
 		if(result && result.data && result.data.list && result.data.list.length > 0){
 			$table.find("tr").filter(":gt(0)").remove();
 			var html = [];
@@ -67,9 +76,12 @@ $(function(){
 				html.push("<tr>");
 				html.push("<td>", ++count , "</td>")
 				html.push("<td>", item.name, "</td>");
-				html.push("<td>", item.host, "</td>");
+				html.push("<td>", show(item.project), "</td>");
+				html.push("<td>", show(item.host), "</td>");
 				html.push("<td>", item.path, "</td>");
 				html.push("<td>", item.type, "</td>");
+				html.push("<td>", item.isBefore == 1 ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>', "</td>");
+				html.push("<td>", item.isContent == 1 ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>', "</td>");
 				html.push("<td>", item.isFilter == 1 ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>', "</td>");
 				html.push("<td>", buildOptions(item), "</td>");
 				html.push("</tr>");
@@ -94,8 +106,14 @@ $(function(){
 		var html = [];
 		var example = item.example;
 		var url = "";
+		var getHost = function(str){
+			if(typeof str === "string"){
+				return str.split(",")[0]
+			}
+			return "";
+		};
 		var buildLocalURL = function(){
-			var arr = [mock.uri("test"), "?mock-host=", encodeURIComponent(item.host)];
+			var arr = [mock.uri("test"), "?mock-host=", encodeURIComponent(getHost(item.host))];
 			arr.push("&mock-path=", encodeURIComponent(example));
 			if(item.port != 80){
 				arr.push("&mock-port=", item.port);
@@ -106,7 +124,7 @@ $(function(){
 		if(!example){
 			example = item.path;
 		}
-		url = ["http://", item.host, item.port == 80 ? "" : item.port, example].join("");
+		url = ["http://", getHost(item.host), item.port == 80 ? "" : item.port, example].join("");
 
 		html.push('<a href="', mock.uri("edit") + "?_id=" + item["_id"] ,'" target="_blank" type="button" class="btn btn-default btn-xs m5">编辑</a>')
 		html.push('<button data-id="', item._id ,'" type="button" class="btn btn-danger btn-xs m5 j_del">删除</button>')

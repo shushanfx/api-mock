@@ -170,11 +170,11 @@ module.exports = function(){
 						let ext = mimeType.extension(response.headers["content-type"]);
 						mockFetchResponse = response;
 						if(mockAfterFunction && response.statusCode == 200
-							&& (ext === "text" || ext === "html" || ext === "js" || ext === "json"
+							&& (ext === "txt" || ext === "html" || ext === "js" || ext === "json"
 							|| ext === "xml"
 							|| ext === "css" || ext === false)){
-							ext = ext === false ? "text" : ext;
-							if(ext === "text" || ext === "html" || ext === "js"){
+							ext = ext === false ? "txt" : ext;
+							if(ext === "txt" || ext === "html" || ext === "js"){
 								mock.result = jsonUtil.getFromString(response.body);
 							}
 							else{
@@ -202,14 +202,9 @@ module.exports = function(){
 				mockException = true;
 			}
 			if(!mockReturnImmediately && !mockException && mockAfterFunction){
-				try{	
-					if(mock.item.type == "json"){
-						if(mock.result){
-							mock.result = (new Function(`try{ return (${mock.result});} catch(e){return {};}`))();
-						}
-						else{
-							mock.result = {};
-						}
+				try{
+					if(jsonUtil.isJSON(mock.result)){
+						mock.result = (new Function(`try{ return (${mock.result});} catch(e){return {};}`))();
 					}
 					await mockAfterFunction.call(mock, ctx, mock);
 				}

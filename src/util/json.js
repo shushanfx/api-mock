@@ -12,11 +12,11 @@ function getFromString(result){
 			}
 			else if(result.charAt(start) === '{'){
 				let sub = result.substring(0, start);
-				if(isWithTry){
-					break; 
-				}
-				else if(sub.indexOf("try") != -1){
+				if(sub.indexOf("try") != -1){
 					isWithTry = true;
+				}
+				else {
+					break;
 				}
 			}
 			start ++;
@@ -62,7 +62,20 @@ function getFromString(result){
 	}
 	return "";
 }
+function isJSON(result){
+	if(typeof result === "string" ){
+		let ret = result.trim();
+		let start = 0, end = ret.length - 1;
+		let subString = result.charAt(start) + result.charAt(end);
+		if(subString === "{}" || subString === "[]"){
+			return true;
+		}
+	}
+	return false;
+}
+
 
 module.exports = {
-	getFromString
+	getFromString,
+	isJSON
 };

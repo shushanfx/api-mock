@@ -32,6 +32,7 @@
     "koa-serve": "^0.1.7",
     "koa-static": "^4.0.1",
     "koa-views": "^6.0.2",
+    "koa2-file-middle": "^1.0.0",
     "log4js": "^2.3.3",
     "merge": "^1.2.0",
     "mockjs": "^1.0.1-beta3",

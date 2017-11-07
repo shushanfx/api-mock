@@ -49,6 +49,10 @@ function createRequestOption(mock, ctx){
 		if(query){
 			let tmpArray = [];
 			Object.keys(query).forEach(key => {
+				// discast mock api.
+				if(key.startsWith("mock-")){
+					return true;
+				}
 				tmpArray.push(encodeURIComponent(key) + "=" + encodeURIComponent(query[key] || ""));
 			});
 			if(tmpArray.length > 0){
@@ -220,8 +224,17 @@ module.exports = function(){
 				} catch(e){
 					mockException = true;
 					logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
-					ctx.response.status = e.statusCode || 500;
-					ctx.response.body = e.message || "Server Inner Error";
+					ctx.status = e.statusCode || 500;
+					let message = e.message;
+					if(typeof e.message != "string"){
+						try{	
+							message = iconv.decode(message, "UTF-8");
+						} catch(e1){
+							message = null;
+							logger.error(e1);
+						}
+					}
+					ctx.body = message || "Server Inner Error";
 				}
 			}
 			else{

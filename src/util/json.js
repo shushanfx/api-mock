@@ -10,6 +10,11 @@ function getFromString(result){
 			if(result.charAt(start) === '['){
 				break;
 			}
+			else if(result.charAt(start) === "<"){
+				// html
+				start = end;
+				break ;
+			}
 			else if(result.charAt(start) === '{'){
 				let sub = result.substring(0, start);
 				if(sub.indexOf("try") != -1){
@@ -49,18 +54,10 @@ function getFromString(result){
 		}
 		else{
 			// not json, set it as a string.
-			// replace " to ', \r and \n to empty.
-			return "'" + result.replace(/\'/gi, "\"").replace(/\r|\n/gi, '') + "'";
+			return result;
 		}
 	}
-	else if(typeof result === "object" && result !== null ){
-		try{
-			return JSON.stringify(result);
-		} catch(e){
-
-		}
-	}
-	return "";
+	return result;
 }
 function isJSON(result){
 	if(typeof result === "string" ){

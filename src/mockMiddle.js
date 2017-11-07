@@ -5,6 +5,7 @@ var co = require("co")
 var request = require("request-promise");
 var log4js = require("log4js");
 var mimeType = require("mime-types");
+var iconv = require('iconv-lite');
 
 var Wrapper = require("./bean/wrapper");
 var WrapperError = require("./bean/wrapperError");
@@ -59,10 +60,21 @@ function createRequestOption(mock, ctx){
 	let options = {
 		url: buildUrl(protocol, host, path, port, query),
 		method: ctx.method,
-		headers: ctx.headers,
-		gzip: ctx.headers["accept-encoding"] && ctx.headers["accept-encoding"].toLowerCase().indexOf("gzip") !== -1,
-		resolveWithFullResponse: true
+		resolveWithFullResponse: true,
+		encoding: null,
+		gzip: true
 	};
+	options.headers = {};
+	if(ctx.headers){
+		Object.keys(ctx.headers).forEach(key => {
+			// handle cache header.
+			if(key === "if-modified-since" || key === "if-none-match"){
+				return true;
+			}
+			options.headers[key] = ctx.headers[key];
+		});
+	}
+	options.headers["host"] = host + (port == 80 ? "" : (":" + port));
 	if(ctx.method.toLowerCase() in 
 		{"post": 1, "put": 1, "patch": 1}){
 		options.body = ctx.request.rawBody;
@@ -103,6 +115,11 @@ module.exports = function(){
 			let obj = await dao.query(host, port, path);
 			let mock = new Wrapper(ctx);
 
+			mock.port = port;
+			mock.path = path;
+			mock.host = host;
+			mock.query = query;
+
 			let mockResult = null;
 			let mockException = false;
 			let mockBeforeFunction = null;
@@ -114,12 +131,13 @@ module.exports = function(){
 				// found ... 
 				ctx.query = query;
 				ctx.param = obj.param;
-
-				mock.query = query;
 				mock.type = obj.item.type;
+
 				Object.keys(obj).forEach(jtem => {
 					mock[jtem] = obj[jtem];
 				});
+
+				// mock it.
 				mock.require = require;
 				mock.cwd = process.cwd();
 				mock.merge = merge;
@@ -168,17 +186,26 @@ module.exports = function(){
 					let response = await request(options);
 					if(response){
 						let ext = mimeType.extension(response.headers["content-type"]);
+						let charset = mimeType.charset(response.headers["content-type"]);
 						mockFetchResponse = response;
 						if(mockAfterFunction && response.statusCode == 200
 							&& (ext === "txt" || ext === "html" || ext === "js" || ext === "json"
 							|| ext === "xml"
 							|| ext === "css" || ext === false)){
-							ext = ext === false ? "txt" : ext;
-							if(ext === "txt" || ext === "html" || ext === "js"){
-								mock.result = jsonUtil.getFromString(response.body);
+							// handle charset.
+							if(typeof charset === "string"){
+								response.body = iconv.decode(response.body, charset);
+								ext = ext === false ? "txt" : ext; 
+								if(ext === "txt" || ext === "html" || ext === "js"){
+									mock.result = jsonUtil.getFromString(response.body);
+								}
+								else{
+									mock.result = response.body;
+								}								
 							}
 							else{
-								mock.result = response.body;
+								// 直接返回
+								mockReturnImmediately = true;	
 							}
 						}
 						else{
@@ -201,6 +228,7 @@ module.exports = function(){
 				// not found
 				mockException = true;
 			}
+
 			if(!mockReturnImmediately && !mockException && mockAfterFunction){
 				try{
 					if(jsonUtil.isJSON(mock.result)){
@@ -215,7 +243,6 @@ module.exports = function(){
 				}
 			}
 			if(!mockException && mockFetchResponse){
-				let body = mockFetchResponse.body;
 				let headers = mockFetchResponse.headers;
 				if(headers){
 					Object.keys(headers).forEach(key => {
@@ -223,15 +250,20 @@ module.exports = function(){
 							// 去掉gzip压缩的情况
 							return ;	
 						}
-						if(key === "content-length" && !mockReturnImmediately){
-							return ;
+						if(!mockReturnImmediately){
+							if(key === "content-length"){
+								return ;
+							}							
 						}
 						ctx.set(key, headers[key]);
 					});
 				}
 				if(mockReturnImmediately){
-					ctx.body = body;
 					ctx.status = mockFetchResponse.statusCode || "200";	
+					ctx.body = mockFetchResponse.body;
+					// ctx.body = ctx.req.pipe(mockFetchResponse);
+					// mockFetchResponse.pipe(ctx.res);
+					// mockFetchResponse.req.pipe(ctx.res);
 				}
 			}
 			if(!mockException && !mockReturnImmediately && mock.result){

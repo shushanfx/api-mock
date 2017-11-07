@@ -130,7 +130,7 @@ var obj = {
 			_size = pageSize >= 1 ? 1 * pageSize : config.get("pager.size");
 		var count = 0;
 		return new Promise(function(resolve, reject){
-			MockObject.count(function(err, count){
+			MockObject.count(mock, function(err, count){
 				debug("QueryMock: count ", count);
 				if(err){
 					reject(err);

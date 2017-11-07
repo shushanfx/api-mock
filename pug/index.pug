@@ -14,6 +14,7 @@ block content
 				input#txtPath.form-control(type='text')
 				input#txtPageIndex.form-control(type='hidden')
 				input#txtPageSize.form-control(type='hidden')
+				input#txtProject.form-control(type='hidden',value=project)
 			| &nbsp;
 			button#btnSearch.btn.btn-default(type='submit',data-search-url=mock.uri("be/list")) Search
 			| &nbsp;
@@ -34,9 +35,9 @@ block content
 					th Options
 			tbody
 				tr
-					td(colspan="6")
+					td(colspan="10")
 						div.text-center(style="height:200px; padding-top: 90px;")
-							| No Data
+							| Loading ...
 		div.panel.panel-default
 			.panel-body
 				#divPager(aria-label="Page navigation",style="display:none;")

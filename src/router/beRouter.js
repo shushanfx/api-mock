@@ -24,6 +24,9 @@ function buildQuery(obj){
 	if(obj.path){
 		query.path = buildReg(obj.path);
 	}
+	if(obj.project){
+		query.project = buildReg("(^|,)" + obj.project + "(,|$)");
+	}
 
 	return {
 		query: query,

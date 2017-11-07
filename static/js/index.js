@@ -13,6 +13,7 @@ $(function(){
 		var url = $btnSearch.attr("data-search-url");
 		var name = $.trim($("#txtName").val()),
 			domain = $.trim($("#txtDomain").val()),
+			projectID = $.trim($("#txtProject").val()),
 			path = $.trim($("#txtPath").val());
 		var pageIndex = $.trim($("#txtPageIndex").val()),
 			pageSize = $.trim($("#txtPageSize").val());
@@ -24,6 +25,7 @@ $(function(){
 					name: name,
 					host: domain,
 					path: path,
+					project: projectID || "",
 					pageSize: pageSize,
 					pageIndex: pageIndex
 				}, 
@@ -97,7 +99,7 @@ $(function(){
 		}
 		else{
 			$table.find("tr").filter(":gt(0)").remove();
-			$table.append('<tr><td colspan="6"><div class="text-center" style="height:200px; padding-top: 90px;">No Data</div></td></tr>');
+			$table.append('<tr><td colspan="10"><div class="text-center" style="height:200px; padding-top: 90px;">No Data</div></td></tr>');
 			buildPage(null);
 		}
 	}

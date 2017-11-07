@@ -4,7 +4,8 @@ class IndexRouter extends AbstractRouter {
 	init(){
 		this.html("index", async function(ctx, next){
 			await ctx.render("index", {
-				"title": "首页"
+				"title": "首页",
+				"project": ctx.query && ctx.query.project ? ctx.query.project : ""
 			});	
 		})
 		.html("add", async function(ctx, next){

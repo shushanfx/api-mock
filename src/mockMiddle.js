@@ -253,6 +253,7 @@ module.exports = function(){
 					// error in execute.
 					mockException = true;
 					handleException(mock, ctx, e);
+					logger.error(e);
 				}
 			}
 			if(!mockException && mockFetchResponse){

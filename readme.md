@@ -1,5 +1,5 @@
 # API-MOCK
-API Mock 平台。在开发过程中经常会碰到接口还有准备好的情况，这个时候一个接口mock平台能够提供很大的帮助，降低接口等待时间。
+不知你是否遇到此类情况：后台接口持续开发中，前端进度不依不饶，又或者是需要变化后台数据的某些状态，以验证展现是否正常。那么，如果你对这些情况束手无策时，不妨考虑这个mock平台。
 
 ## 目标
 API Mock平台，为了解决如下需求：
@@ -16,14 +16,15 @@ API Mock平台，为了解决如下需求：
 具体功能如下：
 > 1. 点击【Add】跳转至编辑页，新增api配置；
 > 2. 点击【编辑】跳转至指定的api编辑页进行编辑；
-> 3. 点击【本地测试】【本地jsonp】，跳转至本地的一个测试页面，测试url形如[`http://localhost:8001/mock/test.php?mock-host=zkconfig.qiyi.domain&mock-path=%2Fzconfig%2Flist%3Fname%3D123%26value%3D%E5%8C%97%E4%BA%AC`](http://localhost:8001/mock/test.php?mock-host=zkconfig.qiyi.domain&mock-path=%2Fzconfig%2Flist%3Fname%3D123%26value%3D%E5%8C%97%E4%BA%AC)
+> 3. 点击【本地测试】【本地jsonp】，跳转至本地的一个测试页面，测试url形如[`http://localhost:8001/mock/test.php?mock-host=www.baidu.com&mock-path=%2Fzconfig%2Flist%3Fname%3D123%26value%3D%E5%8C%97%E4%BA%AC`](http://localhost:8001/mock/test.php?mock-host=www.baidu.com&mock-path=%2Fzconfig%2Flist%3Fname%3D123%26value%3D%E5%8C%97%E4%BA%AC)
 > 4. 点击【host测试】【host jsonp】，跳转至一个真实的url地址，如果需要看mock效果，则需要配置host。
 > 5. wiki，跳转至指定的wiki地址。
 
 ### 编辑页
 新增&修改均会进入编辑，可以对api的属性、内容等进行编辑。
 ![编辑01](./doc/edit1.png)
-各字段定义如下：      
+各字段定义如下： 
+
 **基本信息**
 
 | 名称 | 对应字段 | 描述 | 必填 |
@@ -47,18 +48,21 @@ API Mock平台，为了解决如下需求：
 | 名称 | 对应字段 | 描述 | 必填 |
 | ---------|----------|---------|-------- |
 | Data Type | type | 接口的数据类型，支持json|html|xml等格式 | Y |
+| 前置操作 | isBefore | 是否启用抓取前过滤 | N |
+| Before Get | onBefore | 前置过滤内容 | N |
+| 使用自定义数据 | isContent | 是否使用自定义数据 | N |
 | Content | content | 接口的内容 | N |
 | 数据过滤器 | isFilter | 是否开启过滤器(filter) | N |
 | Filter | filter | 过滤器脚本，请参考下文的`自定义Filter` | N |
 
 
-### 自定义Filter
+### 前置操作、自定义Filter
 可以通过mock平台的编辑页自定义接口的处理，并将处理结果插入response。自定义filter的处理如下图：
 ![自定义Filter](./doc/edit3.png)
 编辑自定filter需注意如下事项：
-> 1. 如果需要开启fiter，则需要勾选自定filter，否则直接返回content字段的内容。
-> 2. 可以在filter输入一些js语句，系统提供了两个传入参数`ctx`和`mock`，详细信息见下；
-> 3. 如果需要修改返回数据，则需要修改`mock.result`，默认情况下，如果返回类型(`type`字段)为json，则`mock.result`为一个json对象。
+> 1. 如果需要开启fiter，则需要勾选自定filter，否则将不进行处理。
+> 2. 内容部分可以输入s语句，系统提供两个传入参数`ctx`和`mock`，详细信息见下；
+> 3. 通过修改mock.result，达到修改返回值的目的。
 
 
 **ctx**

@@ -61,6 +61,12 @@ function createRequestOption(mock, ctx){
 		}
 		return arr.join("");
 	};
+	let buildProxy = function(proxy){
+		let arr = /^\s*(([^:]+):\/\/)?([^:\/]+)(:(\d+))?\s*$/gi.exec(proxy);
+		if(arr && arr[3]){
+			return (arr[2] || "http") + "://" + arr[3] + ( arr[5] && arr[5] != "80" ? (":" + arr[5]) : "" );
+		}
+	};
 	let options = {
 		url: buildUrl(protocol, host, path, port, query),
 		method: ctx.method,
@@ -79,6 +85,9 @@ function createRequestOption(mock, ctx){
 		});
 	}
 	options.headers["host"] = host + (port == 80 ? "" : (":" + port));
+	if(mock.item && mock.item.isProxy && typeof mock.item.proxy === "string"){
+		options.proxy = buildProxy(mock.item.proxy);
+	}
 	if(ctx.method.toLowerCase() in 
 		{"post": 1, "put": 1, "patch": 1}){
 		options.body = ctx.request.rawBody;
@@ -185,7 +194,8 @@ module.exports = function(){
 			else if(!mockResult && !ctx.headers["x-come-from"]){
 				ctx.headers["X-Come-From"] = "Mock";
 				let options = createRequestOption(mock, ctx);
-				logger.info(`${options.method} -> ${options.url}`);
+				let proxy = options.proxy || "none";
+				logger.info(`${options.method} -> ${options.url} with proxy: ${proxy}`);
 				try {
 					let response = await request(options);
 					if(response){
@@ -263,6 +273,9 @@ module.exports = function(){
 						if(key === "content-encoding" && typeof headers[key] === "string"){
 							// 去掉gzip压缩的情况
 							return ;	
+						}
+						else if(key === "transfer-encoding"){
+							return ;
 						}
 						if(!mockReturnImmediately){
 							if(key === "content-length"){

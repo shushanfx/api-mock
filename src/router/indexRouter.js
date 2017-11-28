@@ -38,6 +38,11 @@ class IndexRouter extends AbstractRouter {
 				"title": "域名列表"
 			})
 		})
+		.html("project", async function(ctx, next){
+			await ctx.render("project", {
+				"title": "项目管理"
+			});
+		});
 	}
 }
 

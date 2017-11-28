@@ -18,7 +18,10 @@ var MockObjectSchema = mongoose.Schema({
 	"type": String, // Type, json | html | xml
 	"isContent": Number, // is used use defined data.
 	"content": String, // mock content
-	"onBefore": String, // before fetch 
+	"isProxy": Number, // whether to use proxy for request.
+	"proxy": String, // proxy string, host:port, default port is 80.
+	"isBefore": Number, // whether to execute the on before operation.
+	"onBefore": String, // before fetch, return false to terminate the operation immediately. 
 	"isFilter": Number, // Does use filter function.
 	"filter": String, // Filter async function, with one parameter: 
 	// ctx, the context for the request.

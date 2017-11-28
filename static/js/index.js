@@ -82,9 +82,12 @@ $(function(){
 				html.push("<td>", show(item.host), "</td>");
 				html.push("<td>", item.path, "</td>");
 				html.push("<td>", item.type, "</td>");
-				html.push("<td>", item.isBefore == 1 ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>', "</td>");
-				html.push("<td>", item.isContent == 1 ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>', "</td>");
-				html.push("<td>", item.isFilter == 1 ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>', "</td>");
+				html.push("<td style='width:10%;'>")
+				html.push(item.isBefore == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="前置操作">onBefore</span>' : '');
+				html.push(item.isContent == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="自定义数据">content</span>' : '');
+				html.push(item.isProxy == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="抓取代理">proxy</span>' : '');
+				html.push(item.isFilter == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="后置过滤">onFilter</span>' : '');
+				html.push("</td>");
 				html.push("<td>", buildOptions(item), "</td>");
 				html.push("</tr>");
 			});
@@ -99,7 +102,7 @@ $(function(){
 		}
 		else{
 			$table.find("tr").filter(":gt(0)").remove();
-			$table.append('<tr><td colspan="10"><div class="text-center" style="height:200px; padding-top: 90px;">No Data</div></td></tr>');
+			$table.append('<tr><td colspan="8"><div class="text-center" style="height:200px; padding-top: 90px;">No Data</div></td></tr>');
 			buildPage(null);
 		}
 	}

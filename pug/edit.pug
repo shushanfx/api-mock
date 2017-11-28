@@ -123,6 +123,16 @@ block content
 							.col-sm-offset-2.col-sm-10
 								.checkbox
 									label
+										input#chkIsProxy(type='checkbox',name="isProxy", value="1")
+										| 抓取代理
+						.form-group#divProxy(style="display:none;")
+							label.col-sm-2.control-label(for='txtProxy') 代理
+							.col-sm-10
+								input#txtProxy.form-control(type='text', placeholder="代理配置，如10.110.28.204", name="proxy")
+						.form-group
+							.col-sm-offset-2.col-sm-10
+								.checkbox
+									label
 										input#chkIsFilter(type='checkbox',name="isFilter", value="1")
 										| 数据过滤器
 						.form-group#divFilter(style="display:none;")

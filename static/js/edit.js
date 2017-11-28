@@ -3,6 +3,7 @@ $(function(){
 		$isFilter = $("#chkIsFilter"),
 		$isBefore = $("#chkIsBefore"),
 		$isContent = $("#chkIsContent"),
+		$isProxy = $("#chkIsProxy"),
 		$type = $("#sltType"),
 		$form = $($btnSubmit.get(0).from);
 
@@ -24,6 +25,9 @@ $(function(){
 	});
 	$isContent.on("click", function(){
 		handleContent(this.checked);
+	});
+	$isProxy.on("click", function(){
+		handleProxy(this.checked);
 	});
 	$type.on("change", function(){
 		handleContent($isContent.is(":checked"));
@@ -81,6 +85,15 @@ $(function(){
         			autoCloseBrackets: true
 				});
 			}
+		}
+		else{
+			$div.hide();
+		}
+	}
+	function handleProxy(isChecked){
+		var $div = $("#divProxy");
+		if(isChecked){
+			$div.show();
 		}
 		else{
 			$div.hide();
@@ -161,6 +174,7 @@ $(function(){
 		obj.isFilter = $isFilter.is(":checked") ? "1" : "0";
 		obj.isContent = $isContent.is(":checked") ? "1": "0";
 		obj.isBefore = $isBefore.is(":checked") ? "1": "0";
+		obj.isProxy = $isProxy.is(":checked") ? "1": "0";
 		return obj;
 	}
 
@@ -172,7 +186,7 @@ $(function(){
 					var value = data[item];
 					var $item = $("[name='"  + item + "']");
 					if($item && $item.length > 0){
-						if(item === "isFilter" || item === "isContent" || item === "isBefore"){
+						if(item === "isFilter" || item === "isContent" || item === "isBefore" || item === "isProxy"){
 							$item[0].checked = value == 1;
 						}
 						else{
@@ -188,6 +202,7 @@ $(function(){
 		handleBefore(data && data.isBefore == 1);
 		handleContent(data && data.isContent == 1);
 		handleFilter(data && data.isFilter == 1);
+		handleProxy(data && data.isProxy == 1);
 	}
 
 	function checkObject(obj){

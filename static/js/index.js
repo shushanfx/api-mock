@@ -85,7 +85,7 @@ $(function(){
 				html.push("<td style='width:10%;'>")
 				html.push(item.isBefore == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="前置操作">onBefore</span>' : '');
 				html.push(item.isContent == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="自定义数据">content</span>' : '');
-				html.push(item.isProxy == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="抓取代理">proxy</span>' : '');
+				html.push(item.isProxy == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="' + item.proxy + '">proxy</span>' : '');
 				html.push(item.isFilter == 1 ? '<span class="label label-primary" style="margin-right:5px;" title="后置过滤">onFilter</span>' : '');
 				html.push("</td>");
 				html.push("<td>", buildOptions(item), "</td>");

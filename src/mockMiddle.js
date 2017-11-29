@@ -236,12 +236,16 @@ module.exports = function(){
 					logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
 					ctx.status = e.statusCode || 500;
 					let message = e.message;
-					if(typeof e.message != "string"){
-						try{	
-							message = iconv.decode(message, "UTF-8");
-						} catch(e1){
-							message = null;
-							logger.error(e1);
+					if(e.response && e.response.body){
+						message = e.response.body;
+						if(message instanceof Buffer){
+							let charset = mimeType.charset(e.response.headers["content-type"]) || "utf-8";
+							try{	
+								message = iconv.decode(message, charset);
+							} catch(e1){
+								message = null;
+								logger.error(e1);
+							}
 						}
 					}
 					ctx.body = message || "Server Inner Error";

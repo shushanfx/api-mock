@@ -169,7 +169,6 @@ module.exports = function(){
 					// from content
 					mockResult = obj.item.content;
 				}
-				// after function.
 				if(obj.item.isFilter && obj.item.filter){
 					if(! obj.item.__after){
 						obj.item.__after = new AsyncFunction("ctx", "mock", 
@@ -178,128 +177,138 @@ module.exports = function(){
 					mockAfterFunction = obj.item.__after;
 				}
 			}
+			let returnValue;
 			if(mockBeforeFunction){
 				try{	
-					await mockBeforeFunction.call(mock, ctx, mock);
+					returnValue = await mockBeforeFunction.call(mock, ctx, mock);
 				}
 				catch(e){
 					mockException = true;
 					handleException(mock, ctx, e);
 				}
 			}
-			// handle content or from url.
-			if(!mockException && mockResult){
-				mock.result = mockResult;
-			}
-			else if(!mockResult && !ctx.headers["x-come-from"]){
-				ctx.headers["X-Come-From"] = "Mock";
-				let options = createRequestOption(mock, ctx);
-				let proxy = options.proxy || "none";
-				logger.info(`${options.method} -> ${options.url} with proxy: ${proxy}`);
-				try {
-					let response = await request(options);
-					if(response){
-						let ext = mimeType.extension(response.headers["content-type"]);
-						let charset = mimeType.charset(response.headers["content-type"]);
-						mockFetchResponse = response;
-						if(mockAfterFunction && response.statusCode == 200
-							&& (ext === "txt" || ext === "html" || ext === "js" || ext === "json"
-							|| ext === "xml"
-							|| ext === "css" || ext === false)){
-							// handle charset.
-							if(typeof charset === "string"){
-								response.body = iconv.decode(response.body, charset);
-								ext = ext === false ? "txt" : ext; 
-								if(ext === "txt" || ext === "html" || ext === "js"){
-									mock.result = jsonUtil.getFromString(response.body);
-								}
-								else{
-									mock.result = response.body;
-								}								
-							}
-							else{
-								// 直接返回
-								mockReturnImmediately = true;	
-							}
-						}
-						else{
-							// return immediately
-							mockReturnImmediately = true;
-						}
-					}
-					else{
-						// 没有返回东西
-						mockException = true;
-					}
-				} catch(e){
-					mockException = true;
-					logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
-					ctx.status = e.statusCode || 500;
-					let message = e.message;
-					if(e.response && e.response.body){
-						message = e.response.body;
-						if(message instanceof Buffer){
-							let charset = mimeType.charset(e.response.headers["content-type"]) || "utf-8";
-							try{	
-								message = iconv.decode(message, charset);
-							} catch(e1){
-								message = null;
-								logger.error(e1);
-							}
-						}
-					}
-					ctx.body = message || "Server Inner Error";
+			// before function return false.
+			if(returnValue === false){
+				if(mock.result){
+					renderToBody(ctx, mock);
 				}
 			}
 			else{
-				// not found
-				mockException = true;
+				// handle content or from url.
+				if(!mockException && mockResult){
+					mock.result = mockResult;
+				}
+				else if(!mockResult && !ctx.headers["x-come-from"]){
+					ctx.headers["X-Come-From"] = "Mock";
+					let options = createRequestOption(mock, ctx);
+					let proxy = options.proxy || "none";
+					logger.info(`${options.method} -> ${options.url} with proxy: ${proxy}`);
+					try {
+						let response = await request(options);
+						if(response){
+							let ext = mimeType.extension(response.headers["content-type"]);
+							let charset = mimeType.charset(response.headers["content-type"]);
+							mockFetchResponse = response;
+							if(mockAfterFunction && response.statusCode == 200
+								&& (ext === "txt" || ext === "html" || ext === "js" || ext === "json"
+								|| ext === "xml"
+								|| ext === "css" || ext === false)){
+								// handle charset.
+								if(typeof charset === "string"){
+									response.body = iconv.decode(response.body, charset);
+									ext = ext === false ? "txt" : ext; 
+									if(ext === "txt" || ext === "html" || ext === "js"){
+										mock.result = jsonUtil.getFromString(response.body);
+									}
+									else{
+										mock.result = response.body;
+									}								
+								}
+								else{
+									// 直接返回
+									mockReturnImmediately = true;	
+								}
+							}
+							else{
+								// return immediately
+								mockReturnImmediately = true;
+							}
+						}
+						else{
+							// 没有返回东西
+							mockException = true;
+						}
+					} catch(e){
+						mockException = true;
+						logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
+						ctx.status = e.statusCode || 500;
+						let message = e.message;
+						if(e.response && e.response.body){
+							message = e.response.body;
+							if(message instanceof Buffer){
+								let charset = mimeType.charset(e.response.headers["content-type"]) || "utf-8";
+								try{	
+									message = iconv.decode(message, charset);
+								} catch(e1){
+									message = null;
+									logger.error(e1);
+								}
+							}
+						}
+						ctx.body = message || "Server Inner Error";
+					}
+				}
+				else{
+					// not found
+					mockException = true;
+				}
+
+				if(!mockReturnImmediately && !mockException && mockAfterFunction){
+					try{
+						if(jsonUtil.isJSON(mock.result)){
+							mock.result = (new Function(`try{ return (${mock.result});} catch(e){return {};}`))();
+						}
+						await mockAfterFunction.call(mock, ctx, mock);
+					}
+					catch(e){
+						// error in execute.
+						mockException = true;
+						handleException(mock, ctx, e);
+						logger.error(e);
+					}
+				}
+				if(!mockException && mockFetchResponse){
+					let headers = mockFetchResponse.headers;
+					if(headers){
+						Object.keys(headers).forEach(key => {
+							if(key === "content-encoding" && typeof headers[key] === "string"){
+								// 去掉gzip压缩的情况
+								return ;	
+							}
+							else if(key === "transfer-encoding"){
+								return ;
+							}
+							if(!mockReturnImmediately){
+								if(key === "content-length"){
+									return ;
+								}							
+							}
+							ctx.set(key, headers[key]);
+						});
+					}
+					if(mockReturnImmediately){
+						ctx.status = mockFetchResponse.statusCode || "200";	
+						ctx.body = mockFetchResponse.body;
+						// ctx.body = ctx.req.pipe(mockFetchResponse);
+						// mockFetchResponse.pipe(ctx.res);
+						// mockFetchResponse.req.pipe(ctx.res);
+					}
+				}
+				if(!mockException && !mockReturnImmediately && mock.result){
+					renderToBody(ctx, mock);
+				}				
 			}
 
-			if(!mockReturnImmediately && !mockException && mockAfterFunction){
-				try{
-					if(jsonUtil.isJSON(mock.result)){
-						mock.result = (new Function(`try{ return (${mock.result});} catch(e){return {};}`))();
-					}
-					await mockAfterFunction.call(mock, ctx, mock);
-				}
-				catch(e){
-					// error in execute.
-					mockException = true;
-					handleException(mock, ctx, e);
-					logger.error(e);
-				}
-			}
-			if(!mockException && mockFetchResponse){
-				let headers = mockFetchResponse.headers;
-				if(headers){
-					Object.keys(headers).forEach(key => {
-						if(key === "content-encoding" && typeof headers[key] === "string"){
-							// 去掉gzip压缩的情况
-							return ;	
-						}
-						else if(key === "transfer-encoding"){
-							return ;
-						}
-						if(!mockReturnImmediately){
-							if(key === "content-length"){
-								return ;
-							}							
-						}
-						ctx.set(key, headers[key]);
-					});
-				}
-				if(mockReturnImmediately){
-					ctx.status = mockFetchResponse.statusCode || "200";	
-					ctx.body = mockFetchResponse.body;
-					// ctx.body = ctx.req.pipe(mockFetchResponse);
-					// mockFetchResponse.pipe(ctx.res);
-					// mockFetchResponse.req.pipe(ctx.res);
-				}
-			}
-			if(!mockException && !mockReturnImmediately && mock.result){
-				renderToBody(ctx, mock);
-			}
 		}
 		await next();
 	}

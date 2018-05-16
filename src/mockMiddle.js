@@ -145,13 +145,11 @@ module.exports = function(){
 				ctx.query = query;
 				ctx.param = obj.param;
 				mock.type = obj.item.type;
-
 				Object.keys(obj).forEach(jtem => {
 					mock[jtem] = obj[jtem];
 				});
 
 				// mock it.
-				mock.require = require;
 				mock.cwd = process.cwd();
 				mock.merge = merge;
 				mock.co = co;
@@ -185,6 +183,7 @@ module.exports = function(){
 				catch(e){
 					mockException = true;
 					handleException(mock, ctx, e);
+					logger.error(e);
 				}
 			}
 			// before function return false.
@@ -202,7 +201,6 @@ module.exports = function(){
 					ctx.headers["X-Come-From"] = "Mock";
 					let options = createRequestOption(mock, ctx);
 					let proxy = options.proxy || "none";
-					logger.info(`${options.method} -> ${options.url} with proxy: ${proxy}`);
 					try {
 						let response = await request(options);
 						if(response){
@@ -309,9 +307,24 @@ module.exports = function(){
 				}				
 			}
 
+			mock.mockBeforeFunction = mockBeforeFunction;
+			mock.mockBeforeReturn = returnValue;
+			mock.mockContent = mockResult;
+			mock.mockAfterFunction = mockAfterFunction;
+			mock.mockException = mockException;
+
+			printLog(mock, ctx);
 		}
 		await next();
 	}
+}
+
+function printLog(mock, ctx){
+	let options = createRequestOption(mock, ctx);
+	let proxy = options && options.proxy ? options.proxy : 'none';
+	let isBlock = mock.mockBeforeReturn === false;
+
+	logger.info(`[${options.method}] ${ctx.status} "${options.url}" mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy}`);
 }
 
 function renderToBody(ctx, obj){

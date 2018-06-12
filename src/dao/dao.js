@@ -263,4 +263,11 @@ var obj = {
 	}
 };
 
+Object.defineProperty(obj, 'connection', {
+	enumerable: false,
+	get: function(){
+		return this.db;
+	}
+})
+
 module.exports = exports = obj;

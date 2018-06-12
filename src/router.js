@@ -29,7 +29,7 @@ exports.register = function register(app) {
 	MyDao.init();
 	app.use(FileServe(["assets", "static"], {
 		prefix: config.get("prefix"),
-		cachedPath : true
+		cachedPath : false
 	}));
 	let list = MyRouter;
 	list.forEach(item => {

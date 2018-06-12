@@ -1,0 +1,47 @@
+extends include/page.pug
+
+block title
+  title 控制台管理
+
+block content
+  div.card#card1
+    button.btn.btn-primary.disabled#btnStart(type="button") 开始
+    button.btn.btn-primary#btnClear(type="button") 清除
+  div.card#card2
+    ul#ulList
+
+block css
+  style.
+    #card1 {
+      position: fixed;
+    }
+    #card2 {
+      margin: 40px 0 10px 0;
+      background: black;
+      color: wheat;
+      padding-top: 10px 0;
+      font-size: 16px;
+    }
+    #ulList {
+      list-style: none;
+      min-height: 100px;
+    }
+    #ulList li::before {
+      content: "# api-mock > "; 
+      display: inline-block; 
+      margin-left: -24px;
+      width: 97px;
+    }
+    #btnClear {
+      margin-left: 5px;
+    }
+
+block js
+  script(type="text/javascript",src=mock.uri("plugin/socket.io-2.1.1/socket.io.js", true))
+  script(type="text/javascript",src=mock.uri("js/socket.js?v=1", true))
+  script(type="text/javascript").
+    $(function(){
+      new MySocket("#{host}", "#{port}");
+    });
+
+

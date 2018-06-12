@@ -1,3 +1,5 @@
+const config = require('config');
+
 var AbstractRouter = require("../abstractRouter");
 
 class IndexRouter extends AbstractRouter {
@@ -41,6 +43,13 @@ class IndexRouter extends AbstractRouter {
 		.html("project", async function(ctx, next){
 			await ctx.render("project", {
 				"title": "项目管理"
+			});
+		})
+		.html("console", async function(ctx, next){
+			await ctx.render('console', {
+				"title": "控制台",
+				"port": config.get("port"),
+				"host": ctx.host
 			});
 		});
 	}

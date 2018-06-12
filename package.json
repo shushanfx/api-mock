@@ -24,12 +24,15 @@
   "homepage": "https://github.com/shushanfx/api-mock#readme",
   "dependencies": {
     "config": "^1.27.0",
+    "execa": "^0.10.0",
     "glob": "^7.1.2",
     "koa": "^2.4.1",
     "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.2.1",
     "koa-send": "^4.1.1",
     "koa-serve": "^0.1.7",
+    "koa-session": "^5.8.1",
+    "koa-session-mongoose": "^2.0.5",
     "koa-static": "^4.0.1",
     "koa-views": "^6.1.1",
     "koa2-file-middle": "^1.0.1",
@@ -40,7 +43,25 @@
     "pug": "^2.0.0-rc.4",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
+    "socket.io": "^2.1.1",
     "string-format": "^0.5.0",
-    "url-pattern": "^1.0.3"
+    "url-pattern": "^1.0.3",
+    "vue-loader": "^15.0.11"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.7.0",
+    "css-loader": "^0.28.11",
+    "element-ui": "^2.3.8",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.4.0",
+    "gulp-sequence": "^1.0.0",
+    "url-loader": "^1.0.1",
+    "vinyl-named": "^1.1.0",
+    "vue": "^2.5.16",
+    "vue-router": "^3.0.1",
+    "vuex": "^3.0.1",
+    "webpack-stream": "^4.0.3"
   }
 }

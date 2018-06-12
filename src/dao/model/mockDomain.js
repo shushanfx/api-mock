@@ -2,8 +2,7 @@ var mongoose = require('mongoose');
 
 var Schema = mongoose.Schema({
 	"name": String,
-	"host": String,
-	
+	"host": String, // 多个域名使用英文(,)分割
 
 	"description": String,
 	"creator": String,

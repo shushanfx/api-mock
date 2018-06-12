@@ -1,4 +1,5 @@
 var path = require("path");
+var http = require("http");
 
 var koa = require("koa");
 var serve = require("koa-static");
@@ -11,6 +12,7 @@ var config = require("config");
 
 var myRouter = require("./src/router");
 var myUtil = require("./src/util");
+var mySocket = require("./src/socket");
 var app = new koa();
 var logger = null;
 var port = 0;
@@ -48,7 +50,10 @@ app.use(views(path.resolve(__dirname, "pug"), {
 }));
 myRouter.register(app);
 port = config.get("port") || 8000;
-app.listen(port, function(){
+
+const server = http.Server(app.callback());
+mySocket.init(server);
+server.listen(port, function(){
 	logger.info("Server listen on port " + port)
 });
 

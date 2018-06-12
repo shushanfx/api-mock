@@ -6,7 +6,7 @@ block title
 block content
   div.card#card1
     button.btn.btn-primary.disabled#btnStart(type="button") 开始
-    button.btn.btn-primary#btnClear(type="button") 清除
+    button.btn.btn-danger#btnClear(type="button") 清除
   div.card#card2
     ul#ulList
 
@@ -14,17 +14,20 @@ block css
   style.
     #card1 {
       position: fixed;
+      width: 100%;
+      left: 0;
     }
     #card2 {
-      margin: 40px 0 10px 0;
+      margin: 0px 0 10px 0;
       background: black;
       color: wheat;
-      padding-top: 10px 0;
+      padding-top: 10px;
       font-size: 16px;
     }
     #ulList {
       list-style: none;
       min-height: 100px;
+      word-break: break-word;
     }
     #ulList li::before {
       content: "# api-mock > "; 
@@ -33,12 +36,14 @@ block css
       width: 97px;
     }
     #btnClear {
-      margin-left: 5px;
+      position: absolute;
+      top: 5px;
+      right: 395px;
     }
 
 block js
   script(type="text/javascript",src=mock.uri("plugin/socket.io-2.1.1/socket.io.js", true))
-  script(type="text/javascript",src=mock.uri("js/socket.js?v=1", true))
+  script(type="text/javascript",src=mock.uri("js/socket.js?v=2", true))
   script(type="text/javascript").
     $(function(){
       new MySocket("#{host}", "#{port}");

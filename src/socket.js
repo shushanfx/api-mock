@@ -53,7 +53,17 @@ class MySocket extends Object {
     if(this.cmd){
       this.cmd.disconnect();
     }
-    this.cmd = exec(command, {
+    let arg = command.split(' ');
+    let com, args;
+    if(arg.length >= 2) {
+       com = arg[0];
+       args = arg.slice(1);
+    }
+    else{
+       com = arg[0];
+       args = [];
+    }
+    this.cmd = exec(com, args, {
       windowsHide: true
     });
     this.cmd.stdout.on('data', (data) => {

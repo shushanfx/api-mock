@@ -1,7 +1,7 @@
 function MySocket(host, port) {
   this.host = host;
   this.port = port;
-  this.$btn = $("#btnStart");
+  this.$btn = $("#btnStart").hide();
   this.$list = $("#ulList");
   this.$btnClear = $("#btnClear");
 
@@ -21,6 +21,7 @@ MySocket.prototype.start = function () {
   socket.on("connect", function () {
     $btn.removeClass("disabled");
     me.appendLine('连接成功！');
+    me.$btn.click();
   });
   socket.on("disconnect", function () {
     $btn.addClass("disabled");

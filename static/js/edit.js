@@ -167,7 +167,7 @@ $(function(){
 			if(tmp && $.isArray(tmp)){
 				$.each(tmp, function(){
 					var name = this.name;
-					obj[name] = this.value;
+					obj[name] = $.trim(this.value);
 				});
 			}
 		});

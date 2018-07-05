@@ -211,9 +211,17 @@ var obj = {
 				if(item && item.hostList.indexOf(host) != -1 
 					&& item.port == port){
 					// found same host
-					if(!item.pattern){
+					if(item.path && !item.pattern){
 						// init pattern with url-match
-						item.pattern = new urlPattern(item.path);
+						try {
+							item.pattern = new urlPattern(item.path.trim());
+						} catch(e){
+							item.pattern = null;
+						}
+					}
+					if (!item.pattern) {
+						console.warn(`${host}:${port}${item.path || ''}匹配规则创建失败！`);
+						return true;
 					}
 					let matched = item.pattern.match(path);
 					if(matched){

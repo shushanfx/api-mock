@@ -43,8 +43,27 @@ function createRequestOption(mock, ctx){
 		path = mock && mock.path ? mock.path : ctx.path,
 		port = mock && mock.port ? mock.port : ctx.port,
 		query = mock && mock.query ? mock.query : ctx.query;
+
+	if (ctx.headers['x-scheme']){
+		protocol = ctx.headers['x-scheme'].trim().replace(/\:/gi, '');	
+		delete ctx.headers['x-scheme']; // delete x-scheme
+	}
+	let getHost = function(){
+		if(protocol === "https"){
+			return host + (port == 443 ? "" : (":" + port));
+		}
+		else{
+			return host + (port == 80 ? "" : (":" + port));
+		}
+	}
+	if(path){
+		path = path.trim();
+		if(!path.startsWith("/")){
+			path = "/" + path;
+		}
+	}
 	let buildUrl = function(){
-		var arr = [protocol, "://", host, port == "80" ? "" : (":" + port),
+		var arr = [protocol, "://", getHost(),
 					path];
 		if(query){
 			let tmpArray = [];
@@ -75,7 +94,7 @@ function createRequestOption(mock, ctx){
 		gzip: true
 	};
 	options.headers = {};
-	if(ctx.headers){
+	if(!mock.isNotTunnelHeader && ctx.headers){
 		Object.keys(ctx.headers).forEach(key => {
 			// handle cache header.
 			if(key === "if-modified-since" || key === "if-none-match"){
@@ -84,7 +103,10 @@ function createRequestOption(mock, ctx){
 			options.headers[key] = ctx.headers[key];
 		});
 	}
-	options.headers["host"] = host + (port == 80 ? "" : (":" + port));
+	if(mock.isNotRedirect){
+		options.followRedirect = false;
+	}
+	options.headers["host"] = getHost();
 	if(mock.item && mock.item.isProxy && typeof mock.item.proxy === "string"){
 		options.proxy = buildProxy(mock.item.proxy);
 	}

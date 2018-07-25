@@ -4,6 +4,8 @@ $(function(){
 		$isBefore = $("#chkIsBefore"),
 		$isContent = $("#chkIsContent"),
 		$isProxy = $("#chkIsProxy"),
+		$isNotRedirect = $("#chkIsNotRedirect"),
+		$isNotTunnelHeader = $("#chkisNotTunnelHeader")
 		$type = $("#sltType"),
 		$form = $($btnSubmit.get(0).from);
 
@@ -175,6 +177,8 @@ $(function(){
 		obj.isContent = $isContent.is(":checked") ? "1": "0";
 		obj.isBefore = $isBefore.is(":checked") ? "1": "0";
 		obj.isProxy = $isProxy.is(":checked") ? "1": "0";
+		obj.isNotRedirect = $isNotRedirect.is(":checked") ? "1" : "0";
+		obj.isNotTunnelHeader = $isNotTunnelHeader.is(":checked") ? "1" : "0";
 		return obj;
 	}
 
@@ -186,7 +190,9 @@ $(function(){
 					var value = data[item];
 					var $item = $("[name='"  + item + "']");
 					if($item && $item.length > 0){
-						if(item === "isFilter" || item === "isContent" || item === "isBefore" || item === "isProxy"){
+						if(item === "isFilter" || item === "isContent" 
+							|| item === "isBefore" || item === "isProxy"
+							|| item === "isNotRedirect" || item === "isNotTunnelHeader"){
 							$item[0].checked = value == 1;
 						}
 						else{

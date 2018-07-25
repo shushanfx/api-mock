@@ -4,6 +4,8 @@ var MockObjectSchema = mongoose.Schema({
 	"host": String,
 	"port": Number,
 	"path": String,
+	"isNotRedirect": Number, // 是否禁止重定向，如302、304等
+	"isNotTunnelHeader": Number, // 是否禁止透传header
 	"project": String, // 项目标识,
 	"example": String,
 	"wiki": String,

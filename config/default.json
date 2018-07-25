@@ -3,7 +3,7 @@
 	"prefix": "/mock/",
 	"suffix": ".php",
 	"db": {
-		"url": "mongodb://10.110.28.204:27017/mock",
+		"url": "mongodb://10.138.30.208:27017/mock",
 		"user": "mock",
 		"pass": "mock"	
 	},

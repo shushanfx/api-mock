@@ -45,6 +45,18 @@ block content
 							.col-sm-10
 								input#txtExample.form-control(type='text', placeholder="给个样例，方便测试~~", name="example")
 						.form-group
+							.col-sm-offset-2.col-sm-10
+								.checkbox
+									label
+										input#chkisNotTunnelHeader(type='checkbox',name="isNotTunnelHeader", value="1")
+										| 不透传header，默认透传
+						.form-group
+							.col-sm-offset-2.col-sm-10
+								.checkbox
+									label
+										input#chkIsNotRedirect(type='checkbox',name="isNotRedirect", value="1")
+										| 不处理Redirect，如302、304等，默认处理
+						.form-group
 							label.col-sm-2.control-label(for='txtWiki') Wiki
 							.col-sm-10
 								input#txtWiki.form-control(type='text', placeholder="贴个wiki地址，查问题保平安", value="", name="wiki")

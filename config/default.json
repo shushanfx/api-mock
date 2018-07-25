@@ -1,9 +1,9 @@
 {
 	"port": 8001,
-	"prefix": "/mock/",
+	"prefix": "/",
 	"suffix": ".php",
 	"db": {
-		"url": "mongodb://10.110.28.204:27017/mock",
+		"url": "mongodb://127.0.0.1:27017/mock",
 		"user": "mock",
 		"pass": "mock"	
 	},

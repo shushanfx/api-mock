@@ -1,5 +1,5 @@
 var debug = require("debug")("MockMiddleWare");
-var querystring = require("querystring");
+const querystring = require("querystring");
 var merge = require("merge");
 var co = require("co")
 var request = require("request-promise");
@@ -131,6 +131,23 @@ function getType(type) {
 	return MAP[type] || type;
 }
 
+function getProjectID(ctx) {
+	let projectID = ctx.query.projectID || ctx.query.testID || ctx.query.__pid;
+	if (!projectID) {
+		let refer = ctx.header['referer'];
+		if (refer) {
+			let reg = /\?(.+)$/gi;
+			let arr = reg.exec(refer);
+			if (arr) {
+				let str = arr[1];
+				let query = querystring.parse(str);
+				projectID = query.projectID || query.testID || query.__pid;
+			}
+		}
+	}
+	return projectID;
+}
+
 module.exports = function () {
 	return async function (ctx, next) {
 		// 是否找到Middle.
@@ -160,7 +177,7 @@ module.exports = function () {
 				}
 				isWithMockParameter = true;
 			}
-			let projectID = ctx.query.projectID || ctx.query.testID || ctx.query.__pid;
+			let projectID = getProjectID(ctx);
 			let obj = await dao.query(host, port, path, projectID);
 			let mock = new Wrapper(ctx);
 
@@ -269,7 +286,7 @@ module.exports = function () {
 						}
 					} catch (e) {
 						mockException = true;
-						logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode} and  message ${e.message}`);
+						logger.error(`Fetch error from url: ${options.url} with code ${e.statusCode}`);
 						ctx.status = e.statusCode || 500;
 						let message = e.message;
 						if (e.response && e.response.body) {

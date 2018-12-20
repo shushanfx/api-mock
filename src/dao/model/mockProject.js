@@ -1,9 +1,11 @@
 var mongoose = require('mongoose');
 
 var Schema = mongoose.Schema({
-    "projectID": String, // 项目ID
-    "name": String, // 项目名称
-    "description": String, // 项目描述
+	"projectID": String, // 项目ID
+	"name": String, // 项目名称
+	"description": String, // 项目描述
+	"owner": String,
+	"follows": Array, // 项目关注者
 
 	"description": String,
 	"creator": String,
@@ -12,5 +14,4 @@ var Schema = mongoose.Schema({
 	"modifiedTime": Number
 });
 
-module.exports = exports = mongoose.model("MockDomain", Schema);
-
+module.exports = exports = mongoose.model("MockProject", Schema);

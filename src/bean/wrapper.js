@@ -10,8 +10,10 @@ class Wrapper {
 		// 	logger.info(`Inject ${item} to wrap instance.`);
 		// 	this[item] = MockJS[item];
 		// });
-		
+
 		this.MockJS = MockJS;
+		this.mockjs = MockJS;
+		this.mockJS = MockJS;
 		this.ctx = ctx;
 		this._status = Wrapper.OK;
 		this._delay = 0;
@@ -25,15 +27,14 @@ class Wrapper {
 	 */
 	async delay(timeout, percent) {
 		var random = this.random(percent);
-		if(random && timeout > 0){
+		if (random && timeout > 0) {
 			this._delay += timeout;
 			return new Promise(function (resolve) {
 				setTimeout(function () {
 					resolve();
 				}, timeout);
 			});
-		}
-		else{
+		} else {
 			return Promise.resolve();
 		}
 	}
@@ -49,19 +50,19 @@ class Wrapper {
 		}
 		return this;
 	}
-	run(fun, per){
+	run(fun, per) {
 		let random = this.random(per);
-		if(random){
-			if(typeof fun === "function"){
+		if (random) {
+			if (typeof fun === "function") {
 				fun();
 			}
 		}
 		return this;
 	}
-	random(per){
-		let _per = per >= 0 ? per: 100;
+	random(per) {
+		let _per = per >= 0 ? per : 100;
 		let random = Math.random() * 100;
-		if(random < _per){
+		if (random < _per) {
 			return true;
 		}
 		return false;
@@ -72,25 +73,23 @@ class Wrapper {
 	 * @param {function} [callback] the callback function for each tick.
 	 * @return {Object|null} The item in the list or null if the list's length is zero or null.
 	 */
-	tick(list, callback){
-		if(list && list.length > 0){
+	tick(list, callback) {
+		if (list && list.length > 0) {
 			let ctx = this.ctx;
 			let cookieKey = "APIMockWrapper";
 			let length = list.length;
-			if(this.item && this.item._id){
+			if (this.item && this.item._id) {
 				cookieKey = "APIMock" + this.item._id.toString();
 			}
-			if(cookieKey){
+			if (cookieKey) {
 				let value = 0;
-				if(typeof this._tickValue === "number"){
+				if (typeof this._tickValue === "number") {
 					value = this._tickValue;
-				}
-				else{
+				} else {
 					value = ctx.cookies.get(cookieKey);
-					if(value >= 0){
-						value ++;
-					}
-					else{
+					if (value >= 0) {
+						value++;
+					} else {
 						value = 0;
 					}
 					this._tickValue = value;
@@ -99,9 +98,9 @@ class Wrapper {
 					});
 				}
 				let resultValue = list[value % length];
-				if(typeof callback === "function"){
+				if (typeof callback === "function") {
 					let vv = callback(resultValue, value, list);
-					if(typeof vv !== "undefined"){
+					if (typeof vv !== "undefined") {
 						return vv;
 					}
 				}
@@ -115,15 +114,15 @@ class Wrapper {
 	 * @param {Array|String} list The list to random.
 	 * @param {function} [callback] the callback function for each random.
 	 * @return {Object|null} The item in the list or null if the list's length is zero or null.
-	*/
-	any(list, callback){
-		if(list && list.length > 0){
-			let length = list.length; 
+	 */
+	any(list, callback) {
+		if (list && list.length > 0) {
+			let length = list.length;
 			let random = Math.floor(Math.random() * length);
 			let resultValue = list[random];
-			if(typeof callback === "function"){
+			if (typeof callback === "function") {
 				let vv = callback(resultValue, random, list);
-				if(typeof vv !== "undefined"){
+				if (typeof vv !== "undefined") {
 					return vv;
 				}
 			}

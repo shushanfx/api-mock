@@ -11,6 +11,7 @@ var MyDao = require("./dao/dao.js");
 var MyMock = require("./mockMiddle");
 // var FileServe = require("./fileMiddle");
 var FileServe = require("koa2-file-middle");
+const cas = require('./middleware/cas');
 
 var logger = log4js.getLogger("Router");
 
@@ -29,8 +30,9 @@ exports.register = function register(app) {
 	MyDao.init();
 	app.use(FileServe(["assets", "static"], {
 		prefix: config.get("prefix"),
-		cachedPath : false
+		cachedPath: false
 	}));
+	app.use(cas);
 	let list = MyRouter;
 	list.forEach(item => {
 		try {
@@ -46,12 +48,11 @@ exports.register = function register(app) {
 						let options = ins.map[key];
 						if (typeof options === "object" && options.handler) {
 							logger.debug("Register mapper for " + key);
-							if (typeof options.method == "string"
-								&& ALLOW_METHOD[options.method]) {
-								router[options.method](key, options.handler);
-							}
-							else {
-								router.get(key, options.handler);
+							if (typeof options.method == "string" &&
+								ALLOW_METHOD[options.method]) {
+								router[options.method](key, cas.check, options.handler);
+							} else {
+								router.get(key, cas.check, options.handler);
 							}
 							logger.info(stringFormat("Register mapper for {} with method {}.", key, options.method || "get"));
 						}

@@ -1,7 +1,8 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var MockObjectSchema = mongoose.Schema({
+const MockObjectSchema = mongoose.Schema({
 	"host": String,
+	"isUsePort": Number, // 是否使用自定义端口
 	"port": Number,
 	"path": String,
 	"isNotRedirect": Number, // 是否禁止重定向，如302、304等
@@ -16,8 +17,10 @@ var MockObjectSchema = mongoose.Schema({
 	"createdTime": Number,
 	"modifier": String,
 	"modifiedTime": Number,
-	
-	"type": String, // Type, json | html | xml
+	"rank": Number,
+
+	"type": String, // Type, json | javascript | html | xml | file | directory | text
+	"filePath": String,
 	"isContent": Number, // is used use defined data.
 	"content": String, // mock content
 	"isProxy": Number, // whether to use proxy for request.
@@ -30,5 +33,5 @@ var MockObjectSchema = mongoose.Schema({
 	// ctx.data(json for object, xml / html for string)
 });
 
-module.exports = exports = mongoose.model("MockObject", MockObjectSchema);
-
+module.exports = mongoose.model("MockObject", MockObjectSchema);
+module.exports.Schema = MockObjectSchema;

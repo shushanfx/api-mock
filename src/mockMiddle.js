@@ -436,14 +436,17 @@ function renderToBody(ctx, obj) {
 			case "xml":
 			case "html":
 			case "text":
+			case "css":
 				ctx.type = type;
 				ctx.body = result;
 				break;
 			case "javascript":
+			case "js":
 				ctx.type = "js";
 				ctx.body = result;
+				break;
 			default:
-				ctx.type = "json";
+				ctx.type = type;
 				ctx.body = typeof (result) === "object" ? JSON.stringify(result, null, 4) : result;
 		}
 	}

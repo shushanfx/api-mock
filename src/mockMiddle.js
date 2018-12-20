@@ -181,6 +181,7 @@ module.exports = function () {
 			let obj = await dao.query(host, port, path, projectID);
 			let mock = new Wrapper(ctx);
 
+			mock.isRefer = !!ctx.header['referer'];
 			mock.port = port;
 			mock.path = path;
 			mock.host = host;
@@ -268,12 +269,11 @@ module.exports = function () {
 								if (typeof charset === "string") {
 									response.body = iconv.decode(response.body, charset);
 									ext = ext === false ? "text" : ext;
-									// if (ext === "text" || ext === "html" || ext === "javascript") {
-									// 	mock.result = jsonUtil.getFromString(response.body);
-									// } else {
-									// 	mock.result = response.body;
-									// }
-									mock.result = response.body;
+									if (ext === "text" || ext === "html" || ext === "javascript") {
+										mock.result = jsonUtil.getFromString(response.body);
+									} else {
+										mock.result = response.body;
+									}
 								} else {
 									// 直接返回
 									mockReturnImmediately = true;
@@ -393,12 +393,12 @@ function renderToBody(ctx, obj) {
 	var item = obj.item;
 	var mock = obj;
 	var type = obj.type || item.type || "json";
-	var callback = obj.query["callback"];
+	var callback = obj.query["callback"] || obj.query["cb"];
 	var result = obj.result || "";
 	if (ctx.state.isSet) {
 		return;
 	}
-	if (type === "html") {
+	if (!obj.isRefer && type === "html") {
 		// insert js to html
 		result = result + `<script type="text/javascript">
 			(function(){

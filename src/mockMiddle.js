@@ -210,6 +210,7 @@ module.exports = function () {
 				mock.request = request;
 				mock.logger = log4js.getLogger(projectID);
 				mock.console = mock.logger;
+				mock.str2json = jsonUtil.getFromString;
 
 				if (obj.item.isBefore && obj.item.onBefore) {
 					// bofore 任务
@@ -267,11 +268,12 @@ module.exports = function () {
 								if (typeof charset === "string") {
 									response.body = iconv.decode(response.body, charset);
 									ext = ext === false ? "text" : ext;
-									if (ext === "text" || ext === "html" || ext === "javascript") {
-										mock.result = jsonUtil.getFromString(response.body);
-									} else {
-										mock.result = response.body;
-									}
+									// if (ext === "text" || ext === "html" || ext === "javascript") {
+									// 	mock.result = jsonUtil.getFromString(response.body);
+									// } else {
+									// 	mock.result = response.body;
+									// }
+									mock.result = response.body;
 								} else {
 									// 直接返回
 									mockReturnImmediately = true;

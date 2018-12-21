@@ -13,6 +13,7 @@ var dao = require("./dao/dao");
 var jsonUtil = require("./util/json");
 
 var logger = log4js.getLogger("MockMiddle");
+const urlencode = require('urlencode');
 
 var AsyncFunction = global.AsyncFunction;
 if (!AsyncFunction) {
@@ -32,6 +33,39 @@ function handleException(mock, ctx, e) {
 		ctx.status = 500;
 		ctx.body = ("发生如下错误！\n " + e.message);
 		logger.error(e);
+	}
+}
+
+function wrapRequestBody(ctx, options) {
+	let type = ctx.header['content-type'];
+	if (type && typeof type === 'string') {
+		try {
+			let charset = ctx.request.charset || 'utf8';
+			if (ctx.is('multipart')) {
+				let postObject = {
+					...ctx.request.body
+				};
+				for (let key in ctx.request.files) {
+					let file = ctx.request.files[key];
+					postObject[key] = file;
+				}
+				options.formData = postObject;
+			} else if (ctx.is('x-www-form-urlencoded')) {
+				let arr = [];
+				for (let key in ctx.request.body) {
+					let value = ctx.request.body[key];
+					arr.push(urlencode(key || '', charset) + '=' + urlencode(value || '', charset));
+				}
+				options.body = arr.join('&');
+			} else if (ctx.is('json')) {
+				options.body = ctx.request.body;
+				options.json = true;
+			} else {
+				options.body = ctx.request.body;
+			}
+		} catch (e) {
+			logger.error(e);
+		}
 	}
 }
 
@@ -117,7 +151,7 @@ function createRequestOption(mock, ctx) {
 			"put": 1,
 			"patch": 1
 		}) {
-		options.body = ctx.request.rawBody;
+		wrapRequestBody(ctx, options);
 	}
 	return options;
 }
@@ -269,11 +303,12 @@ module.exports = function () {
 								if (typeof charset === "string") {
 									response.body = iconv.decode(response.body, charset);
 									ext = ext === false ? "text" : ext;
-									if (ext === "text" || ext === "html" || ext === "javascript") {
-										mock.result = jsonUtil.getFromString(response.body);
-									} else {
-										mock.result = response.body;
-									}
+									mock.result = response.body;
+									// if (ext === "text" || ext === "html" || ext === "javascript") {
+									// 	mock.result = jsonUtil.getFromString(response.body);
+									// } else {
+									// 	mock.result = response.body;
+									// }
 								} else {
 									// 直接返回
 									mockReturnImmediately = true;
@@ -398,7 +433,7 @@ function renderToBody(ctx, obj) {
 	if (ctx.state.isSet) {
 		return;
 	}
-	if (!obj.isRefer && type === "html") {
+	if (obj.projectID && !obj.isRefer && type === "html") {
 		// insert js to html
 		result = result + `<script type="text/javascript">
 			(function(){

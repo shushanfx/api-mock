@@ -45,7 +45,8 @@
     "request-promise": "^4.2.2",
     "socket.io": "^2.2.0",
     "string-format": "^0.5.0",
-    "url-pattern": "^1.0.3"
+    "url-pattern": "^1.0.3",
+    "urlencode": "^1.1.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

@@ -50,22 +50,29 @@ function wrapRequestBody(ctx, options) {
 					postObject[key] = file;
 				}
 				options.formData = postObject;
-			} else if (ctx.is('x-www-form-urlencoded')) {
-				let arr = [];
-				for (let key in ctx.request.body) {
-					let value = ctx.request.body[key];
-					arr.push(urlencode(key || '', charset) + '=' + urlencode(value || '', charset));
-				}
-				options.body = arr.join('&');
 			} else if (ctx.is('json')) {
 				options.body = ctx.request.body;
 				options.json = true;
 			} else {
-				options.body = ctx.request.body;
+				if (typeof ctx.request.body === "object") {
+					let arr = [];
+					for (let key in ctx.request.body) {
+						let value = ctx.request.body[key];
+						if (typeof value === "object") {
+							value = JSON.stringify(value);
+						}
+						arr.push(urlencode(key || '', charset) + '=' + urlencode(value || '', charset));
+					}
+					options.body = arr.join('&');
+					options.header['content-type'] = 'application/x-www-form-urlencoded;charset=' + charset;
+				} else {
+					options.body = ctx.request.body;
+				}
 			}
 		} catch (e) {
 			logger.error(e);
 		}
+		options.json = true;
 	}
 }
 
@@ -449,7 +456,7 @@ function renderToBody(ctx, obj) {
 	if (ctx.state.isSet) {
 		return;
 	}
-	if (obj.projectID && !obj.isRefer && type === "html") {
+	if (!obj.isRefer && type === "html") {
 		// insert js to html
 		result = result + `<script type="text/javascript">
 			(function(){

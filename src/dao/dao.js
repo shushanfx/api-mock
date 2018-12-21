@@ -237,7 +237,7 @@ const obj = {
 		return new Promise((resolve, reject) => {
 			MockObject.findById(mockId, (err, entity) => {
 				if (err) {
-					reject(err);
+					resolve(null);
 				} else {
 					let newObject = mock;
 					Object.keys(entity._doc).forEach(key => {
@@ -251,7 +251,7 @@ const obj = {
 					let instance = new MockObject(newObject);
 					instance.save((err, entity) => {
 						if (err) {
-							reject(err);
+							resolve(null);
 						} else {
 							resolve(entity);
 						}
@@ -295,14 +295,14 @@ const obj = {
 				return new Promise(function (resolve, reject) {
 					MockProject.findById(project._id, function (err, entity) {
 						if (err) {
-							reject(err);
+							resolve(null);
 						} else {
 							Object.keys(project).forEach(item => {
 								entity[item] = project[item];
 							});
 							entity.save(function (err) {
 								if (err) {
-									reject(err)
+									resolve(null)
 								} else {
 									resolve(entity);
 								}
@@ -313,9 +313,9 @@ const obj = {
 			} else {
 				return new Promise(function (resolve, reject) {
 					let entity = new MockProject(project);
-					entity.save(function (err) {
+					entity.save(function (err, entity) {
 						if (err) {
-							reject(err);
+							resolve(null);
 						} else {
 							resolve(entity);
 						}
@@ -352,17 +352,22 @@ const obj = {
 				}
 			});
 			newObject = await this.save(newObject);
+			if (!newObject) {
+				return newObject;
+			}
 			let list = await obj.queryByPID(oldProjectID);
 			if (list && list.length) {
 				for (let i = 0; i < list.length; i++) {
 					let item = list[i];
-					item.creator = creator;
-					item.createdTime = newObject.createdTime;
-					item.modifier = newObject.modifier;
-					item.modifiedTime = newObject.modifiedTime;
-					item.project = newObject.projectID
+					let newItem = {
+						creator,
+						createdTime: newObject.createdTime,
+						modifier: newObject.modifier,
+						modifiedTime: newObject.modifiedTime,
+						project: newObject.projectID
+					};
 					try {
-						await obj.copyMock(item._id, item);
+						await obj.copyMock(item._id, newItem);
 					} catch (e) {
 
 					}

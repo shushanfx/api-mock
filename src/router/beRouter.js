@@ -88,7 +88,7 @@ class BeRouter extends AbstractRouter {
 				method: "put"
 			})
 			.json("be/del", async function (ctx) {
-				var obj = ctx.request.body;
+				var obj = ctx.query;
 				if (obj && obj._id) {
 					let mock = await dao.delMock(obj._id);
 					ctx.body = Result.success(null, mock);

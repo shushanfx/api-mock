@@ -14,6 +14,8 @@ var jsonUtil = require("./util/json");
 
 var logger = log4js.getLogger("MockMiddle");
 const urlencode = require('urlencode');
+const isIp = require('is-ip');
+const parseDomain = require('parse-domain');
 
 var AsyncFunction = global.AsyncFunction;
 if (!AsyncFunction) {
@@ -187,6 +189,13 @@ function getProjectID(ctx) {
 				projectID = query.projectID || query.testID || query.__pid;
 			}
 		}
+	}
+	if (!projectID) {
+		let cookies = ctx.cookies;
+		projectID = cookies.get('projectID') || cookies.get('testID') || cookies.get('__pid');
+	}
+	if (!projectID) {
+		projectID = ctx.header['x-mock-projectid'] || ctx.header['x-mock-testid'] || ctx.header['x-mock-pid'];
 	}
 	return projectID;
 }
@@ -398,11 +407,12 @@ module.exports = function () {
 							ctx.append(key, headers[key]);
 						});
 					}
-					if (mockReturnImmediately) {
-						ctx.status = mockFetchResponse.statusCode || "200";
-						ctx.body = mockFetchResponse.body;
-					}
 				}
+			}
+			if (mockReturnImmediately) {
+				ctx.append('X-Mock-ProjectID', mock.projectID || 'none');
+				ctx.status = mockFetchResponse.statusCode || "200";
+				ctx.body = mockFetchResponse.body;
 			}
 			if (!mockException && !mockReturnImmediately && mock.result) {
 				let interceptors = [];
@@ -420,9 +430,11 @@ module.exports = function () {
 				if (mock.mockAfterFunction) {
 					interceptors.push('After')
 				}
+				ctx.append('X-Mock-ProjectID', mock.projectID || 'none');
 				ctx.append('X-Mock-Interceptor', interceptors.join(','))
 				ctx.append('X-Mock-Intercept-By-Before', returnValue === false);
 				ctx.append('X-Mock-Proxy', encodeURIComponent(proxy));
+				renderToCookie(ctx, mock);
 				renderToBody(ctx, mock);
 			}
 			mock.mockBeforeFunction = mockBeforeFunction;
@@ -447,6 +459,38 @@ function printLog(mock, ctx) {
 	logger.info(`[${options.method}] ${ctx.status} "${options.url}" _id:${id} projectID:${mock.projectID} mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy}`);
 }
 
+function renderToCookie(ctx, obj) {
+	if (obj && obj.projectID) {
+		let header = obj.host;
+		if (header) {
+			let domain = header;
+			let aIP = isIp(header);
+			let port = obj.isUsePort ? (port || '') : '';
+			if (aIP) {
+				// do nothing
+			} else {
+				let domainInfo = parseDomain(domain, {
+					customTlds: ['localhost', 'local']
+				});
+				if (domainInfo) {
+					domain = (domainInfo.domain ? ('.' + domainInfo.domain + '.') : '') + domainInfo.tld;
+				}
+			}
+			domain = domain + (port > 0 ? (':' + port) : '');
+			let date = new Date();
+			let maxAge = 30 * 24 * 3600 * 1000;
+			date.setTime(date.getTime() + maxAge);
+			ctx.cookies.set('projectID', obj.projectID, {
+				path: '/',
+				domain: domain,
+				httpOnly: true,
+				exipres: date,
+				maxAge: maxAge
+			});
+		}
+	}
+}
+
 function renderToBody(ctx, obj) {
 	var item = obj.item;
 	var mock = obj;
@@ -458,21 +502,81 @@ function renderToBody(ctx, obj) {
 	}
 	if (!obj.isRefer && type === "html") {
 		// insert js to html
+		let IDNumber = `mockTool${Date.now()}`;
 		result = result + `<script type="text/javascript">
 			(function(){
+				var elID = "${IDNumber}";
 				var projectID = "${mock.projectID}";
 				var proxy = "${mock.isProxy ? mock.proxy: ''}";
-				var str = '<p>projectID: ${mock.projectID}</p>';
+				var str = '<div id="${IDNumber}-container" style="background: rebeccapurple; text-align: center;position: relative;bottom:20px; border:2px solid rgb(41, 36, 36); padding: 5px 10px; border-radius: 8px;">';
+				str += '<div>projectID: ${mock.projectID}</div>';
 				if(proxy){
-					str = '<p>${mock.proxy}</p>';
+					str = '<div>proxy: ${mock.proxy}</div>';
 				}
+				if(projectID !== "undefined" && projectID !== "none" 
+					&& projectID !== "" && projectID !== "null"){
+					str += '<div><a style="color: wheat;" href="javascript:void(0);" id="${IDNumber}-clear">清除ProjectID</a></div>';
+				}
+				str += '<div><a style="color: wheat;" href="javascript:void(0);" id="${IDNumber}-new">新ProjectID</a></div>';
+				str += '</div>';
+				str += '<p id="${IDNumber}-btn" style="cursor: pointer; margin:0; padding: 8px; width: 20px; border-radius: 20px; position: absolute; background: rebeccapurple; text-align: center; bottom: 0; right: 0;">-</p>'
 				var aDiv = document.createElement('div');
-				aDiv.setAttribute('style', 'padding: 10px 20px 10px; position:fixed; bottom: 20px; right: 20px; background-color: blue; font-size: 20px; z-index: 99999; color: white;');
+				aDiv.setAttribute('style', 'position:fixed; bottom: 30px; right: 20px; font-size: 20px; z-index: 99999; color: white;');
 				aDiv.innerHTML = str;
 				document.body.appendChild(aDiv);
 				setTimeout(function(){
-					aDiv.style.display = 'none';
-				}, 10000);
+					hideContainer();
+				}, 5000);
+				var container = document.getElementById('${IDNumber}-container');
+				var btn = document.getElementById('${IDNumber}-btn');
+				var btnClear = document.getElementById('${IDNumber}-clear');
+				var btnNew = document.getElementById('${IDNumber}-new');
+				var isShow = true;
+				btn.onclick = function(){
+					if(isShow){
+						hideContainer();
+					}
+					else{
+						showContainer();
+					}
+				};
+				btnClear.onclick = function(e){
+					newProjectID('none');
+					e.preventDefault();
+				};
+				btnNew.onclick = function(e){
+					var newID = prompt("输入新的projectID: ");
+					if(newID && newID.trim()){
+						newProjectID(newID);
+					}
+					e.preventDefault();
+				};
+				function newProjectID(pid){
+					var search = location.search;
+					var reg = /[?&](projectID\=[^&$]*)/gi;
+					var arr = reg.exec(reg);
+					if (arr) {
+						search = search.replace(arr[1], 'projectID=' + encodeURIComponent(pid || ''));
+					} else {
+						if (search.indexOf('?') !== -1) {
+							search += '&';
+						} else {
+							search += '?';
+						}
+						search += 'projectID=' + encodeURIComponent(pid || '');
+					}
+					location.href = window.location.protocol + "//" + location.host + location.pathname + search + location.hash;
+				}
+				function showContainer(){
+					isShow = true;
+					container.style.display = 'block';
+					btn.innerHTML = '-';
+				}
+				function hideContainer(){
+					isShow = false;
+					container.style.display = 'none';
+					btn.innerHTML = '+';
+				}
 			})();
 		</script>`;
 	}

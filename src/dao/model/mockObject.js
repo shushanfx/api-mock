@@ -25,6 +25,8 @@ const MockObjectSchema = mongoose.Schema({
 	"content": String, // mock content
 	"isProxy": Number, // whether to use proxy for request.
 	"proxy": String, // proxy string, host:port, default port is 80.
+	"isBeforeRequest": Number, // whether to user fiter before request.
+	"onBeforeRequest": String, // before request.
 	"isBefore": Number, // whether to execute the on before operation.
 	"onBefore": String, // before fetch, return false to terminate the operation immediately. 
 	"isFilter": Number, // Does use filter function.

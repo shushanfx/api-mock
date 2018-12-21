@@ -145,6 +145,8 @@ function createRequestOption(mock, ctx) {
 	options.headers["host"] = getHost();
 	if (mock.item && mock.item.isProxy && typeof mock.item.proxy === "string") {
 		options.proxy = buildProxy(mock.item.proxy);
+		// 如果使用代理，则将https默认转为http
+		options.url = options.url.replace(/^https?/gi, 'http');
 	}
 	if (ctx.method.toLowerCase() in {
 			"post": 1,
@@ -225,6 +227,7 @@ module.exports = function () {
 			let mockResult = null;
 			let mockException = false;
 			let mockBeforeFunction = null;
+			let mockBeforeRequestFunction = null;
 			let mockAfterFunction = null;
 			let mockReturnImmediately = false;
 			let mockFetchResponse = null;
@@ -259,6 +262,13 @@ module.exports = function () {
 					// from content
 					mockResult = obj.item.content;
 				}
+				if (obj.item.isBeforeRequest && obj.item.onBeforeRequest) {
+					if (!obj.item.__onBeforeRequest) {
+						obj.item.__onBeforeRequest = new AsyncFunction("ctx", "mock", "options",
+							`with(mock){ ${obj.item.onBeforeRequest} }`);
+					}
+					mockBeforeRequestFunction = obj.item.__onBeforeRequest;
+				}
 				if (obj.item.isFilter && obj.item.filter) {
 					if (!obj.item.__after) {
 						obj.item.__after = new AsyncFunction("ctx", "mock",
@@ -288,7 +298,11 @@ module.exports = function () {
 				} else if (!mockResult && !ctx.headers["x-come-from"]) {
 					ctx.headers["X-Come-From"] = "Mock";
 					let options = createRequestOption(mock, ctx);
+					mock.requestOptions = options;
 					try {
+						if (mockBeforeRequestFunction) {
+							await mockBeforeRequestFunction.call(mock, ctx, mock, options);
+						}
 						let response = await request(options);
 						if (response) {
 							let ext = getType(mimeType.extension(response.headers["content-type"]));
@@ -301,7 +315,9 @@ module.exports = function () {
 									ext === "css" || ext === false)) {
 								// handle charset.
 								if (typeof charset === "string") {
-									response.body = iconv.decode(response.body, charset);
+									if (Buffer.isBuffer(response.body)) {
+										response.body = iconv.decode(response.body, charset);
+									}
 									ext = ext === false ? "text" : ext;
 									mock.result = response.body;
 									// if (ext === "text" || ext === "html" || ext === "javascript") {

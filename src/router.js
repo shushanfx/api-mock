@@ -50,12 +50,26 @@ exports.register = function register(app) {
 							logger.debug("Register mapper for " + key);
 							if (typeof options.method == "string" &&
 								ALLOW_METHOD[options.method]) {
-								router[options.method](key, cas.check, options.handler);
+								router[options.method](key, options.handler);
 							} else {
-								router.get(key, cas.check, options.handler);
+								router.get(key, options.handler);
 							}
 							logger.info(stringFormat("Register mapper for {} with method {}.", key, options.method || "get"));
 						}
+					});
+					router.use(cas.check);
+					router.use(async (ctx, next) => {
+						let start = Date.now();
+						try {
+							await next();
+						} catch (e) {
+							logger.error(e);
+							ctx.status = 500;
+							ctx.body = e.message;
+						}
+						let delta = Date.now() - start;
+						console.info(delta);
+						logger.info(`[API-MOCK-BACKGROUND] ${ctx.method} ${ctx.status} [${ctx.path}] cost=${delta}`);
 					});
 					app.use(router.routes())
 						.use(router.allowedMethods());;

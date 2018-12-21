@@ -1,15 +1,15 @@
-$(function(){
+$(function () {
 	var $btnSearch = $("#btnSearch"),
 		$table = $(".table");
 
-	$btnSearch.on("click", function(e){
+	$btnSearch.on("click", function (e) {
 		getList()
 		e.preventDefault();
 	});
 
 	getList();
 
-	function getList(){
+	function getList() {
 		var url = $btnSearch.attr("data-search-url");
 		var name = $.trim($("#txtName").val()),
 			domain = $.trim($("#txtDomain").val()),
@@ -18,9 +18,9 @@ $(function(){
 		var pageIndex = $.trim($("#txtPageIndex").val()),
 			pageSize = $.trim($("#txtPageSize").val());
 
-		if(url){
+		if (url) {
 			$.ajax({
-				url: url, 
+				url: url,
 				data: {
 					name: name,
 					host: domain,
@@ -28,55 +28,53 @@ $(function(){
 					project: projectID || "",
 					pageSize: pageSize,
 					pageIndex: pageIndex
-				}, 
+				},
 				timeout: 3000,
-				success: function(result){
+				success: function (result) {
 					buildList(result);
 				},
-				error: function(){
+				error: function () {
 					buildList(null);
 				}
 			});
 		}
 	}
 
-	function onHandleRemove(mockId){
+	function onHandleRemove(mockId) {
 		$.ajax({
-			url: mock.uri("be/del"),
-			data: {_id: mockId},
+			url: mock.uri("be/del") + "?_id=" + mockId,
 			method: "delete",
 			timeout: 2000,
-			success: function(result){
-				if(result && result.code == 1){
+			success: function (result) {
+				if (result && result.code == 1) {
 					getList();
-				}
-				else{
+				} else {
 					alert("操作失败！");
 				}
 			},
-			error: function(){
+			error: function () {
 				alert("操作失败！")
 			}
 		});
 	}
 
-	function buildList(result){
-		var show = function(str){
-			if(typeof str === "string"){
-				return str.split(",").map(function(value){
+	function buildList(result) {
+		var show = function (str) {
+			if (typeof str === "string") {
+				return str.split(",").map(function (value) {
 					return "<p>" + value + "<p>";
 				}).join("");
 			}
 			return "-";
 		}
 
-		if(result && result.data && result.data.list && result.data.list.length > 0){
+		if (result && result.data && result.data.list && result.data.list.length > 0) {
 			$table.find("tr").filter(":gt(0)").remove();
 			var html = [];
 			var count = (result.data.pageIndex - 1) * result.data.pageSize
-			$.each(result.data.list, function(index, item){
+			$.each(result.data.list, function (index, item) {
 				html.push("<tr>");
-				html.push("<td>", ++count , "</td>")
+				html.push("<td>", ++count, "</td>")
 				html.push("<td>", item.name, "</td>");
 				html.push("<td>", show(item.project), "</td>");
 				html.push("<td>", show(item.host), "</td>");
@@ -92,91 +90,88 @@ $(function(){
 				html.push("</tr>");
 			});
 			$table.append(html.join(""));
-			$table.find(".j_del").on("click", function(e){
-				if(confirm("Sure to delete this item? ")){
+			$table.find(".j_del").on("click", function (e) {
+				if (confirm("Sure to delete this item? ")) {
 					onHandleRemove($(this).attr("data-id"));
 				}
 				e.preventDefault();
 			});
 			buildPage(result.data.pageIndex * 1, result.data.pageSize * 1, result.data.total * 1);
-		}
-		else{
+		} else {
 			$table.find("tr").filter(":gt(0)").remove();
 			$table.append('<tr><td colspan="8"><div class="text-center" style="height:200px; padding-top: 90px;">No Data</div></td></tr>');
 			buildPage(null);
 		}
 	}
 
-	function buildOptions(item){
+	function buildOptions(item) {
 		var html = [];
 		var example = item.example;
 		var url = "";
-		var getHost = function(str){
-			if(typeof str === "string"){
+		var getHost = function (str) {
+			if (typeof str === "string") {
 				return str.split(",")[0]
 			}
 			return "";
 		};
-		var buildLocalURL = function(){
+		var buildLocalURL = function () {
 			var arr = [mock.uri("test"), "?mock-host=", encodeURIComponent(getHost(item.host))];
 			arr.push("&mock-path=", encodeURIComponent(example));
-			if(item.port != 80){
+			if (item.port != 80) {
 				arr.push("&mock-port=", item.port);
 			}
 			return arr.join("");
 		}
 
-		if(!example){
+		if (!example) {
 			example = item.path;
 		}
 		url = ["http://", getHost(item.host), item.port == 80 ? "" : item.port, example].join("");
 
-		html.push('<a href="', mock.uri("edit") + "?_id=" + item["_id"] ,'" target="_blank" type="button" class="btn btn-default btn-xs m5">编辑</a>')
-		html.push('<button data-id="', item._id ,'" type="button" class="btn btn-danger btn-xs m5 j_del">删除</button>')
-		if(example){
-			html.push('<a type="button" href="', buildLocalURL(),'" target="_blank" class="btn btn-default btn-xs m5">本地测试</a>')
-			html.push('<a type="button" href="', jsonpURL(buildLocalURL()) ,'" target="_blank" class="btn btn-default btn-xs m5">本地jsonp</a>')
-			html.push('<a type="button" href="', url ,'" target="_blank" class="btn btn-default btn-xs m5">Host测试</a>')
-			html.push('<a type="button" href="', jsonpURL(url) ,'" target="_blank" class="btn btn-default btn-xs m5">Host jsonp</a>')
+		html.push('<a href="', mock.uri("edit") + "?_id=" + item["_id"], '" target="_blank" type="button" class="btn btn-default btn-xs m5">编辑</a>')
+		html.push('<button data-id="', item._id, '" type="button" class="btn btn-danger btn-xs m5 j_del">删除</button>')
+		if (example) {
+			html.push('<a type="button" href="', buildLocalURL(), '" target="_blank" class="btn btn-default btn-xs m5">本地测试</a>')
+			html.push('<a type="button" href="', jsonpURL(buildLocalURL()), '" target="_blank" class="btn btn-default btn-xs m5">本地jsonp</a>')
+			html.push('<a type="button" href="', url, '" target="_blank" class="btn btn-default btn-xs m5">Host测试</a>')
+			html.push('<a type="button" href="', jsonpURL(url), '" target="_blank" class="btn btn-default btn-xs m5">Host jsonp</a>')
 		}
-		
-		if(item.wiki){
-			html.push('<a type="button" href="', item.wiki ,'" target="_blank" class="btn btn-default btn-xs m5">Wiki</a>')
+
+		if (item.wiki) {
+			html.push('<a type="button" href="', item.wiki, '" target="_blank" class="btn btn-default btn-xs m5">Wiki</a>')
 		}
 
 		return html.join("")
 	}
 
-	function jsonpURL(url){
-		if(url && url.indexOf("?") != -1){
+	function jsonpURL(url) {
+		if (url && url.indexOf("?") != -1) {
 			return url + "&callback=jQuery" + Date.now();
-		}
-		else{
+		} else {
 			return url + "?callback=jQuery" + Date.now();
 		}
 	}
 
-	function buildPage(pageIndex, pageSize, total){
+	function buildPage(pageIndex, pageSize, total) {
 		var $pager = $("#divPager");
 		var html = [];
 		var pageTotal = Math.ceil(pageTotal / pageSize);
 
-		if(!pageIndex || isNaN(pageIndex)){
+		if (!pageIndex || isNaN(pageIndex)) {
 			$pager.hide();
-		}
-		else{
+		} else {
 			$pager.show();
 			html.push(getPageSelect(pageSize));
 			html.push(getPagePager(pageIndex, pageSize, total))
 			html.push(getPageInfo(pageIndex, pageSize, total));
 			$pager.html(html.join(""));
-			$pager.find("select").on("change", function(){
+			$pager.find("select").on("change", function () {
 				$("#txtPageSize").val(this.value);
-				getList();	
+				getList();
 			});
-			$pager.find("a").on("click", function(e){
+			$pager.find("a").on("click", function (e) {
 				var $target = $(this);
-				if(!$target.hasClass(".disabled")){
+				if (!$target.hasClass(".disabled")) {
 					$("#txtPageIndex").val($target.attr("data-index"));
 					getList();
 				}
@@ -185,83 +180,78 @@ $(function(){
 		}
 	}
 
-	function getPageSelect(pageSize){
+	function getPageSelect(pageSize) {
 		var arr = [];
 		var list = [10, 20, 50];
 
 		arr.push('<div class="col-md-2"><div style="line-height:34px;height:34px;">')
 		arr.push('Page size: ')
 		arr.push('<select>')
-		list.forEach(function(item){
+		list.forEach(function (item) {
 			var selected = '';
-			if(item == pageSize){
+			if (item == pageSize) {
 				selected = 'selected';
 			}
-			arr.push('<option value="', item ,'" ', selected, '>', item, '</option>')
+			arr.push('<option value="', item, '" ', selected, '>', item, '</option>')
 		});
 		arr.push('</select>')
 		arr.push('</div></div>')
 		return arr.join('');
 	}
 
-	function getPagePager(pageIndex, pageSize, total){
+	function getPagePager(pageIndex, pageSize, total) {
 		var arr = [];
 		var pageTotal = Math.ceil(total / pageSize);
-		var printItem = function(index, isDisabled){
-			arr.push('<li', (isDisabled ? ' class="active"' : '') ,'><a href="javascript:void(0);" data-index="', index , '"', isDisabled ? ' class="disabled"' : ''  ,'>', index ,'</a></li>');
+		var printItem = function (index, isDisabled) {
+			arr.push('<li', (isDisabled ? ' class="active"' : ''), '><a href="javascript:void(0);" data-index="', index, '"', isDisabled ? ' class="disabled"' : '', '>', index, '</a></li>');
 		}
-		var printSpan = function(){
+		var printSpan = function () {
 			arr.push('<li><span>...<span></li>')
 		}
 		var i = 0;
 
 		arr.push('<div class="col-md-7" style="text-align:center">')
 		arr.push('<ul class="pagination" style="margin:0;">')
-		if(pageTotal > 6){
-			if(pageIndex == 1){
+		if (pageTotal > 6) {
+			if (pageIndex == 1) {
 				printItem(1, true);
-			}
-			else{
-				arr.push('<li><a href="javascript:void(0);" data-index="', pageIndex - 1 , '" aria-label="Previous"><span aria-hidden="true">«</span></a></li>');
+			} else {
+				arr.push('<li><a href="javascript:void(0);" data-index="', pageIndex - 1, '" aria-label="Previous"><span aria-hidden="true">«</span></a></li>');
 				printItem(1);
 			}
 		}
-		if(pageTotal > 6){
-			if(pageIndex <= 3){
+		if (pageTotal > 6) {
+			if (pageIndex <= 3) {
 				// 前置
-				for(i = 2; i <= 4; i ++){
+				for (i = 2; i <= 4; i++) {
 					printItem(i, i == pageIndex);
 				}
 				printSpan();
-			}
-			else if(pageIndex >= pageTotal - 2){
+			} else if (pageIndex >= pageTotal - 2) {
 				// 后置
 				printSpan();
-				for(i = pageTotal - 3; i < pageTotal; i++){
+				for (i = pageTotal - 3; i < pageTotal; i++) {
 					printItem(i, i == pageIndex);
 				}
-			}
-			else{
+			} else {
 				printSpan();
-				for( i = pageIndex - 1; i <= pageIndex + 1; i ++){
+				for (i = pageIndex - 1; i <= pageIndex + 1; i++) {
 					printItem(i, i == pageIndex);
 				}
 				printSpan();
 			}
-		}
-		else{
-			for(i = 1; i <= pageTotal; i ++){
+		} else {
+			for (i = 1; i <= pageTotal; i++) {
 				printItem(i, pageIndex == i);
 			}
 		}
 
-		if(pageTotal > 6){
-			if(pageIndex == pageTotal){
+		if (pageTotal > 6) {
+			if (pageIndex == pageTotal) {
 				printItem(pageTotal, true);
-			}
-			else{
-				arr.push('<li><a href="javascript:void(0);" data-index="', pageTotal , '">', pageTotal ,'</a></li>')
-				arr.push('<li><a href="javascript:void(0);" data-index="', pageIndex + 1 , '" aria-label="Next"><span aria-hidden="true">»</span></a></li>');
+			} else {
+				arr.push('<li><a href="javascript:void(0);" data-index="', pageTotal, '">', pageTotal, '</a></li>')
+				arr.push('<li><a href="javascript:void(0);" data-index="', pageIndex + 1, '" aria-label="Next"><span aria-hidden="true">»</span></a></li>');
 			}
 		}
 
@@ -270,7 +260,7 @@ $(function(){
 		return arr.join('');
 	}
 
-	function getPageInfo(pageIndex, pageSize, total){
+	function getPageInfo(pageIndex, pageSize, total) {
 		var start = pageSize * (pageIndex - 1) + 1;
 		var end = Math.min(pageSize * pageIndex, total);
 		var arr = ['<div class="col-md-3"><div  style="line-height:34px;height:34px;">'];

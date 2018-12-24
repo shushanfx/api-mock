@@ -20,7 +20,7 @@ const parseDomain = require('parse-domain');
 
 var AsyncFunction = global.AsyncFunction;
 if (!AsyncFunction) {
-  AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
+  AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 }
 
 function handleException(mock, ctx, e) {
@@ -66,8 +66,8 @@ function wrapRequestBody(ctx, options) {
             }
             arr.push(
               urlencode(key || '', charset) +
-                '=' +
-                urlencode(value || '', charset)
+              '=' +
+              urlencode(value || '', charset)
             );
           }
           options.body = arr.join('&');
@@ -99,7 +99,7 @@ function createRequestOption(mock, ctx) {
     protocol = ctx.headers['x-forwarded-proto'].trim().replace(/\:/gi, '');
     delete ctx.headers['x-forwarded-proto']; // delete x-scheme
   }
-  let getHost = function() {
+  let getHost = function () {
     if (protocol === 'https') {
       return host + (!port || port == 443 ? '' : ':' + port);
     } else {
@@ -112,7 +112,7 @@ function createRequestOption(mock, ctx) {
       path = '/' + path;
     }
   }
-  let buildUrl = function() {
+  let buildUrl = function () {
     var arr = [protocol, '://', getHost(), path];
     if (query) {
       let tmpArray = [];
@@ -131,7 +131,7 @@ function createRequestOption(mock, ctx) {
     }
     return arr.join('');
   };
-  let buildProxy = function(proxy) {
+  let buildProxy = function (proxy) {
     let arr = /^\s*(([^:]+):\/\/)?([^:\/]+)(:(\d+))?\s*$/gi.exec(proxy);
     if (arr && arr[3]) {
       return (
@@ -169,8 +169,7 @@ function createRequestOption(mock, ctx) {
     options.url = options.url.replace(/^https?/gi, 'http');
   }
   if (
-    ctx.method.toLowerCase() in
-    {
+    ctx.method.toLowerCase() in {
       post: 1,
       put: 1,
       patch: 1
@@ -218,8 +217,8 @@ function getProjectID(ctx) {
   return projectID;
 }
 
-module.exports = function() {
-  return async function(ctx, next) {
+module.exports = function () {
+  return async function (ctx, next) {
     // 是否找到Middle.
     if (ctx.status == 404) {
       var path = ctx.path,
@@ -242,8 +241,7 @@ module.exports = function() {
         if (path.indexOf('?') != -1) {
           let newPath = path.substring(0, path.indexOf('?'));
           query = merge(
-            true,
-            {},
+            true, {},
             query,
             querystring.parse(path.substring(path.indexOf('?') + 1))
           );
@@ -472,14 +470,14 @@ module.exports = function() {
         if (mockResult) {
           interceptors.push('Content');
         }
-        if (mock.isProxy && mock.proxy) {
-          proxy = mock.proxy || 'none';
+        if (mock.requestOptions && mock.requestOptions.proxy) {
+          proxy = mock.requestOptions.proxy || 'none';
           interceptors.push('Proxy');
         }
         if (mock.mockAfterFunction) {
           interceptors.push('After');
         }
-        ctx.append('X-Mock-ProjectID', mock.projectID || 'none');
+        ctx.append('X-Mock-ProjectID', encodeURIComponent(mock.projectID || 'none'));
         ctx.append('X-Mock-Interceptor', interceptors.join(','));
         ctx.append('X-Mock-Intercept-By-Before', returnValue === false);
         ctx.append('X-Mock-Proxy', encodeURIComponent(proxy));
@@ -499,7 +497,7 @@ module.exports = function() {
 };
 
 function printLog(mock, ctx) {
-  let options = createRequestOption(mock, ctx);
+  let options = mock.requestOptions;
   let proxy = options && options.proxy ? options.proxy : 'none';
   let isBlock = mock.mockBeforeReturn === false;
 
@@ -552,6 +550,7 @@ function renderToBody(ctx, obj) {
   var type = obj.type || item.type || 'json';
   var callback = obj.query['callback'] || obj.query['cb'];
   var result = obj.result || '';
+  let proxy = mock.requestOptions && mock.requestOptions.proxy ? mock.requestOptions.proxy : '';
   if (ctx.state.isSet) {
     return;
   }
@@ -564,11 +563,11 @@ function renderToBody(ctx, obj) {
 			(function(){
 				var elID = "${IDNumber}";
 				var projectID = "${mock.projectID}";
-				var proxy = "${mock.isProxy ? mock.proxy : ''}";
+				var proxy = "${proxy}";
 				var str = '<div id="${IDNumber}-container" style="background: rebeccapurple; text-align: center;position: relative;bottom:20px; border:2px solid rgb(41, 36, 36); padding: 5px 10px; border-radius: 8px;">';
 				str += '<div>projectID: ${mock.projectID}</div>';
 				if(proxy){
-					str = '<div>proxy: ${mock.proxy}</div>';
+					str += '<div>proxy: ' + proxy + '</div>';
 				}
 				if(projectID !== "undefined" && projectID !== "none" 
 					&& projectID !== "" && projectID !== "null"){
@@ -614,8 +613,8 @@ function renderToBody(ctx, obj) {
 				}
 				function newProjectID(pid){
 					var search = location.search;
-					var reg = /[?&](projectID(\=[^&$]*)?)/gi;
-					var arr = reg.exec(reg);
+					var reg = /[\?\&](projectID(\=[^\&$]*)?)/gi;
+					var arr = reg.exec(search);
 					if (arr) {
 						search = search.replace(arr[1], 'projectID=' + encodeURIComponent(pid || ''));
 					} else {

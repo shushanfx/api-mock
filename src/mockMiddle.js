@@ -35,11 +35,20 @@ function handleException(mock, ctx, e) {
   } else {
     ctx.status = 500;
     ctx.body = '发生如下错误！\n ' + e.message;
-    logger.error(e);
   }
 }
 
-function wrapRequestBody(ctx, options) {
+function loggerError(logger, error) {
+  let stack = error ? error.stack : null;
+  if (stack) {
+    let arr = stack.split('\n');
+    arr.forEach(item => {
+      logger.error(item);
+    });
+  }
+}
+
+function wrapRequestBody(ctx, options, logger) {
   let type = ctx.header['content-type'];
   if (type && typeof type === 'string') {
     try {
@@ -78,7 +87,7 @@ function wrapRequestBody(ctx, options) {
         }
       }
     } catch (e) {
-      logger.error(e);
+      loggerError(logger, e);
     }
     options.json = true;
   }
@@ -175,7 +184,7 @@ function createRequestOption(mock, ctx) {
       patch: 1
     }
   ) {
-    wrapRequestBody(ctx, options);
+    wrapRequestBody(ctx, options, mock.logger);
   }
   return options;
 }
@@ -259,6 +268,9 @@ module.exports = function () {
       mock.host = host;
       mock.query = query;
       mock.projectID = projectID;
+      mock.logger = log4js.getLogger(projectID);
+      mock.console = mock.logger;
+      mock.start = Date.now();
 
       let mockResult = null;
       let mockException = false;
@@ -282,8 +294,6 @@ module.exports = function () {
         mock.merge = merge;
         mock.co = co;
         mock.request = request;
-        mock.logger = log4js.getLogger(projectID);
-        mock.console = mock.logger;
         mock.str2json = jsonUtil.getFromString;
 
         if (obj.item.isBefore && obj.item.onBefore) {
@@ -330,7 +340,7 @@ module.exports = function () {
         } catch (e) {
           mockException = true;
           handleException(mock, ctx, e);
-          logger.error(e);
+          loggerError(mock.logger, e);
         }
       }
       // before function return false.
@@ -393,7 +403,7 @@ module.exports = function () {
             }
           } catch (e) {
             mockException = true;
-            logger.error(
+            mock.logger.error(
               `Fetch error from url: ${options.url} with code ${e.statusCode}`
             );
             ctx.status = e.statusCode || 500;
@@ -408,7 +418,7 @@ module.exports = function () {
                   message = iconv.decode(message, charset);
                 } catch (e1) {
                   message = null;
-                  logger.error(e1);
+                  loggerError(mock.logger, e1);
                 }
               }
             }
@@ -430,7 +440,7 @@ module.exports = function () {
             // error in execute.
             mockException = true;
             handleException(mock, ctx, e);
-            logger.error(e);
+            loggerError(mock.logger, e);
           }
         }
         if (!mockException && mockFetchResponse) {
@@ -501,12 +511,15 @@ function printLog(mock, ctx) {
   let proxy = options && options.proxy ? options.proxy : 'none';
   let isBlock = mock.mockBeforeReturn === false;
 
-  let id = mock.item && mock.item._id ? mock.item._id : '';
+  let id = mock.item && mock.item._id ? mock.item._id : 'none';
+  let ua = ctx.header['user-agent'];
+  let ip = ctx.ips;
+  let cost = Date.now() - mock.start;
 
   logger.info(
-    `[${options.method}] ${ctx.status} "${options.url}" _id:${id} projectID:${
-      mock.projectID
-    } mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy}`
+    `[${options.method}] ${ctx.status} "${options.url}" cost:${cost} _id:${id} projectID:${
+      mock.projectID || 'none'
+    } mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy} ips:${ip} ua:"${ua}"`
   );
 }
 
@@ -564,7 +577,7 @@ function renderToBody(ctx, obj) {
 				var elID = "${IDNumber}";
 				var projectID = "${mock.projectID}";
 				var proxy = "${proxy}";
-				var str = '<div id="${IDNumber}-container" style="background: rebeccapurple; text-align: center;position: relative;bottom:20px; border:2px solid rgb(41, 36, 36); padding: 5px 10px; border-radius: 8px;">';
+				var str = '<div id="${IDNumber}-container" style="background: rebeccapurple; text-align: center;position: relative;bottom:20px; padding: 5px 10px; border-radius: 8px;">';
 				str += '<div>projectID: ${mock.projectID}</div>';
 				if(proxy){
 					str += '<div>proxy: ' + proxy + '</div>';
@@ -575,9 +588,9 @@ function renderToBody(ctx, obj) {
 				}
 				str += '<div><a style="color: wheat;" href="javascript:void(0);" id="${IDNumber}-new">新ProjectID</a></div>';
 				str += '</div>';
-				str += '<p id="${IDNumber}-btn" style="cursor: pointer; margin:0; padding: 8px; width: 20px; border-radius: 20px; position: absolute; background: rebeccapurple; text-align: center; bottom: 0; right: 0; box-sizing: content-box;">-</p>'
+				str += '<p id="${IDNumber}-btn" style="cursor: pointer; margin:0; padding: 8px; width: 20px; border-radius: 20px; position: absolute; background: rebeccapurple; text-align: center; bottom: 0; right: 0; box-sizing: content-box;">+</p>'
 				var aDiv = document.createElement('div');
-				aDiv.setAttribute('style', 'position:fixed; bottom: 30px; right: 20px; font-size: 20px; z-index: 99999; color: white;');
+				aDiv.setAttribute('style', 'display:none; position:fixed; bottom: 30px; right: 20px; font-size: 20px; z-index: 99999; color: white; margin-left: 20px;');
 				aDiv.innerHTML = str;
 				document.body.appendChild(aDiv);
 				setTimeout(function(){
@@ -587,7 +600,7 @@ function renderToBody(ctx, obj) {
 				var btn = document.getElementById('${IDNumber}-btn');
 				var btnClear = document.getElementById('${IDNumber}-clear');
 				var btnNew = document.getElementById('${IDNumber}-new');
-				var isShow = true;
+				var isShow = false;
 				btn.onclick = function(){
 					if(isShow){
 						hideContainer();

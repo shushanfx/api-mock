@@ -1,5 +1,5 @@
 var SocketIO = require("socket.io");
-var exec = require("child_process").spawn;
+var exec = require("child_process").exec;
 var log4js = require("log4js");
 
 var logger = log4js.getLogger("Socket");
@@ -38,16 +38,16 @@ class MySocket extends Object {
     if (this.cmd) {
       this.cmd.disconnect();
     }
-    let arg = command.split(' ');
-    let com, args;
-    if (arg.length >= 2) {
-      com = arg[0];
-      args = arg.slice(1);
-    } else {
-      com = arg[0];
-      args = [];
-    }
-    this.cmd = exec(com, args, {
+    // let arg = command.split(' ');
+    // let com, args;
+    // if (arg.length >= 2) {
+    //   com = arg[0];
+    //   args = arg.slice(1);
+    // } else {
+    //   com = arg[0];
+    //   args = [];
+    // }
+    this.cmd = exec(command, {
       windowsHide: true
     });
     this.cmd.stdout.on('data', (data) => {

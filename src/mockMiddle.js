@@ -17,6 +17,7 @@ var logger = log4js.getLogger('MockMiddle');
 const urlencode = require('urlencode');
 const isIp = require('is-ip');
 const parseDomain = require('parse-domain');
+const ipUtils = require('./util/ip');
 
 var AsyncFunction = global.AsyncFunction;
 if (!AsyncFunction) {
@@ -509,15 +510,17 @@ module.exports = function () {
 function printLog(mock, ctx) {
   let options = mock.requestOptions;
   let proxy = options && options.proxy ? options.proxy : 'none';
+  let method = options && options.method ? options.method : (mock.method || ctx.method);
+  let url = options && options.url ? options.url : (mock.url || ctx.url);
   let isBlock = mock.mockBeforeReturn === false;
 
   let id = mock.item && mock.item._id ? mock.item._id : 'none';
   let ua = ctx.header['user-agent'];
-  let ip = ctx.ips;
+  let ip = ipUtils.getClientIP(ctx);
   let cost = Date.now() - mock.start;
 
   logger.info(
-    `[${options.method}] ${ctx.status} "${options.url}" cost:${cost} _id:${id} projectID:${
+    `[${method}] ${ctx.status} "${url}" cost:${cost} _id:${id} projectID:${
       mock.projectID || 'none'
     } mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy} ips:${ip} ua:"${ua}"`
   );
@@ -577,7 +580,7 @@ function renderToBody(ctx, obj) {
 				var elID = "${IDNumber}";
 				var projectID = "${mock.projectID}";
 				var proxy = "${proxy}";
-				var str = '<div id="${IDNumber}-container" style="background: rebeccapurple; text-align: center;position: relative;bottom:20px; padding: 5px 10px; border-radius: 8px;">';
+				var str = '<div id="${IDNumber}-container" style="display:none; background: rebeccapurple; text-align: center;position: relative;bottom:20px; padding: 5px 10px; border-radius: 8px;">';
 				str += '<div>projectID: ${mock.projectID}</div>';
 				if(proxy){
 					str += '<div>proxy: ' + proxy + '</div>';
@@ -590,7 +593,7 @@ function renderToBody(ctx, obj) {
 				str += '</div>';
 				str += '<p id="${IDNumber}-btn" style="cursor: pointer; margin:0; padding: 8px; width: 20px; border-radius: 20px; position: absolute; background: rebeccapurple; text-align: center; bottom: 0; right: 0; box-sizing: content-box;">+</p>'
 				var aDiv = document.createElement('div');
-				aDiv.setAttribute('style', 'display:none; position:fixed; bottom: 30px; right: 20px; font-size: 20px; z-index: 99999; color: white; margin-left: 20px;');
+				aDiv.setAttribute('style', 'position:fixed; bottom: 30px; right: 20px; font-size: 20px; z-index: 99999; color: white; margin-left: 20px;');
 				aDiv.innerHTML = str;
 				document.body.appendChild(aDiv);
 				setTimeout(function(){

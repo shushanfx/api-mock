@@ -1,8 +1,8 @@
-var SocketIO = require("socket.io");
-var exec = require("child_process").exec;
-var log4js = require("log4js");
+var SocketIO = require('socket.io');
+var exec = require('child_process');
+var log4js = require('log4js');
 
-var logger = log4js.getLogger("Socket");
+var logger = log4js.getLogger('Socket');
 var socketID = 0;
 
 class MySocket extends Object {
@@ -19,14 +19,17 @@ class MySocket extends Object {
   }
   init() {
     let me = this;
-    this.socket.on('run', function (action) {
+    this.socket.on('run', function(action) {
       if (action) {
-        logger.info(`Run command: ${action}`)
+        logger.info(`Run command: ${action}`);
         me.run(action);
       }
     });
+    this.socket.on('projectID', function(projectID) {
+      me.projectID = projectID;
+    });
     this.socket.on('disconnect', () => {
-      logger.info(`Socket ${this.id} closed. (${me.server.list.length})`)
+      logger.info(`Socket ${this.id} closed. (${me.server.list.length})`);
       this.close();
     });
     this.socket.on('stop', () => {
@@ -38,19 +41,19 @@ class MySocket extends Object {
     if (this.cmd) {
       this.cmd.disconnect();
     }
-    // let arg = command.split(' ');
-    // let com, args;
-    // if (arg.length >= 2) {
-    //   com = arg[0];
-    //   args = arg.slice(1);
-    // } else {
-    //   com = arg[0];
-    //   args = [];
-    // }
-    this.cmd = exec(command, {
+    let arg = command.split(' ');
+    let com, args;
+    if (arg.length >= 2) {
+      com = arg[0];
+      args = arg.slice(1);
+    } else {
+      com = arg[0];
+      args = [];
+    }
+    this.cmd = exec(com, args, {
       windowsHide: true
     });
-    this.cmd.stdout.on('data', (data) => {
+    this.cmd.stdout.on('data', data => {
       let str = data.toString();
       let lines = str.split('\n');
       lines.forEach((line, index) => {
@@ -68,7 +71,7 @@ class MySocket extends Object {
         }
       });
     });
-    this.cmd.stderr.on('data', (data) => {
+    this.cmd.stderr.on('data', data => {
       let str = data.toString();
       let lines = str.split('\n');
       lines.forEach((line, index) => {
@@ -85,21 +88,28 @@ class MySocket extends Object {
           this.writeLine(line);
         }
       });
-    })
-    this.cmd.on('close', (code) => {
+    });
+    this.cmd.on('close', code => {
       this.socket.emit('stop');
       this.cmd = null;
-    })
+    });
     this.cmd.on('disconnect', () => {
       this.socket.emit('stop');
       this.cmd = null;
     });
-    this.cmd.on('error', (err) => {
+    this.cmd.on('error', err => {
       this.writeLine(`System out with error: ${err}`);
     });
   }
   writeLine(line) {
-    this.socket.write(line + '\n');
+    if (line) {
+      if (
+        !this.projectID ||
+        (this.projectID && line.indexOf(this.projectID) !== -1)
+      ) {
+        this.socket.write(line + '\n');
+      }
+    }
   }
   close() {
     if (this.cmd) {
@@ -119,7 +129,7 @@ module.exports = {
   },
   listen() {
     let me = this;
-    this.io.on("connection", function (socket) {
+    this.io.on('connection', function(socket) {
       let s = new MySocket(me, socket);
       s.init();
       me.list.push(s);
@@ -140,4 +150,4 @@ module.exports = {
       this.list.splice(index, 1);
     }
   }
-}
+};

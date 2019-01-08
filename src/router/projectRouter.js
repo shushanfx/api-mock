@@ -47,7 +47,8 @@ class BeRouter extends AbstractRouter {
       .json("project/save", async function (ctx) {
         var obj = ctx.request.body;
         let username = ctx.cas ? ctx.cas.username : 'shushanfx';
-        if (obj && obj.name) {
+        // projectID as reserve keyword
+        if (obj && obj.name && obj.projectID != 'none') {
           if (!obj._id) {
             obj.creator = username;
             obj.createdTime = Date.now();

@@ -28,15 +28,16 @@ function handleException(mock, ctx, e) {
   if (e instanceof WrapperError) {
     let status = mock._status;
     if (Wrapper.MESSAGE[status]) {
-      ctx.response.body = Wrapper.MESSAGE[status];
+      mock.result = Wrapper.MESSAGE[status];
     } else {
-      ctx.response.body = e.message;
+      mock.result = e.message;
     }
-    ctx.response.status = status;
+    ctx.status = status;
   } else {
     ctx.status = 500;
-    ctx.body = '发生如下错误！\n ' + e.message;
+    mock.result = '发生如下错误: ' + e.message;
   }
+  ctx.body = mock.result;
 }
 
 function loggerError(logger, error) {
@@ -344,8 +345,11 @@ module.exports = function () {
           loggerError(mock.logger, e);
         }
       }
-      // before function return false.
-      if (returnValue === false) {
+      if (mockException) {
+        // mock return exception.
+        mockResult = mock.result;
+      } else if (returnValue === false) {
+        // before function return false.
         mockException = false;
         mockReturnImmediately = false;
       } else {
@@ -522,7 +526,7 @@ function printLog(mock, ctx) {
   logger.info(
     `[${method}] ${ctx.status} "${url}" cost:${cost} _id:${id} projectID:${
       mock.projectID || 'none'
-    } mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy} ips:${ip} ua:"${ua}"`
+    } mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy} ip:${ip} ua:"${ua}"`
   );
 }
 

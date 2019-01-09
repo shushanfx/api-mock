@@ -1,5 +1,5 @@
 var SocketIO = require('socket.io');
-var exec = require('child_process');
+var exec = require('child_process').spawn;
 var log4js = require('log4js');
 
 var logger = log4js.getLogger('Socket');
@@ -19,13 +19,13 @@ class MySocket extends Object {
   }
   init() {
     let me = this;
-    this.socket.on('run', function(action) {
+    this.socket.on('run', function (action) {
       if (action) {
         logger.info(`Run command: ${action}`);
         me.run(action);
       }
     });
-    this.socket.on('projectID', function(projectID) {
+    this.socket.on('projectID', function (projectID) {
       me.projectID = projectID;
     });
     this.socket.on('disconnect', () => {
@@ -129,7 +129,7 @@ module.exports = {
   },
   listen() {
     let me = this;
-    this.io.on('connection', function(socket) {
+    this.io.on('connection', function (socket) {
       let s = new MySocket(me, socket);
       s.init();
       me.list.push(s);

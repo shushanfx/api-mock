@@ -15,10 +15,7 @@ var port = 0;
 log4js.configure({
 	appenders: {
 		'out': {
-			type: 'stdout',
-			layout: {
-				type: 'basic'
-			}
+			type: 'console'
 		}
 	},
 	categories: {

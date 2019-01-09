@@ -81,7 +81,7 @@ function wrapRequestBody(ctx, options, logger) {
             );
           }
           options.body = arr.join('&');
-          options.header['content-type'] =
+          options.headers['content-type'] =
             'application/x-www-form-urlencoded;charset=' + charset;
         } else {
           options.body = ctx.request.body;

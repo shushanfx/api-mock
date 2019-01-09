@@ -1,3 +1,4 @@
+const ipUtils = require('../util/ip');
 const AbstractRouter = require("../abstractRouter");
 const Result = require('../bean/result');
 
@@ -9,6 +10,13 @@ class IndexRouter extends AbstractRouter {
         ctx.body = result;
       } else {
         ctx.body = Result.fail('获取用户信息失败');
+      }
+    }).json("cas/ip", async function (ctx) {
+      let ip = ipUtils.getClientIP(ctx);
+      if (ip != "none") {
+        ctx.body = Result.success(null, ip);
+      } else {
+        ctx.body = Result.fail("获取失败", ip);
       }
     });
   }

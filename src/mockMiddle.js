@@ -1,4 +1,5 @@
 var debug = require('debug')('MockMiddleWare');
+const fs = require('fs');
 const querystring = require('querystring');
 var merge = require('merge');
 var co = require('co');
@@ -61,8 +62,28 @@ function wrapRequestBody(ctx, options, logger) {
         };
         for (let key in ctx.request.files) {
           let file = ctx.request.files[key];
-          postObject[key] = file;
+          if (Array.isArray(file)) {
+            postObject[key] = file.map(entity => {
+              return {
+                value: fs.createReadStream(entity.path),
+                options: {
+                  filename: entity.name,
+                  contentType: entity.type
+                }
+              }
+            })
+          } else {
+            postObject[key] = {
+              value: fs.createReadStream(file.path),
+              options: {
+                filename: file.name,
+                contentType: file.type
+              }
+            }
+          }
         }
+
+        delete options.headers['content-type'];
         options.formData = postObject;
       } else if (ctx.is('json')) {
         options.body = ctx.request.body;
@@ -91,7 +112,6 @@ function wrapRequestBody(ctx, options, logger) {
     } catch (e) {
       loggerError(logger, e);
     }
-    options.json = true;
   }
 }
 
@@ -178,6 +198,8 @@ function createRequestOption(mock, ctx) {
     options.proxy = buildProxy(mock.item.proxy);
     // 如果使用代理，则将https默认转为http
     options.url = options.url.replace(/^https?/gi, 'http');
+    // 取消tunnel
+    options.tunnel = false;
   }
   if (
     ctx.method.toLowerCase() in {
@@ -411,6 +433,7 @@ module.exports = function () {
             mock.logger.error(
               `Fetch error from url: ${options.url} with code ${e.statusCode}`
             );
+            // loggerError(mock.logger, e);
             ctx.status = e.statusCode || 500;
             let message = e.message;
             if (e.response && e.response.body) {
@@ -492,7 +515,10 @@ module.exports = function () {
         if (mock.mockAfterFunction) {
           interceptors.push('After');
         }
-        ctx.append('X-Mock-ProjectID', encodeURIComponent(mock.projectID || 'none'));
+        ctx.append(
+          'X-Mock-ProjectID',
+          encodeURIComponent(mock.projectID || 'none')
+        );
         ctx.append('X-Mock-Interceptor', interceptors.join(','));
         ctx.append('X-Mock-Intercept-By-Before', returnValue === false);
         ctx.append('X-Mock-Proxy', encodeURIComponent(proxy));
@@ -514,19 +540,20 @@ module.exports = function () {
 function printLog(mock, ctx) {
   let options = mock.requestOptions;
   let proxy = options && options.proxy ? options.proxy : 'none';
-  let method = options && options.method ? options.method : (mock.method || ctx.method);
-  let url = options && options.url ? options.url : (mock.url || ctx.url);
+  let method =
+    options && options.method ? options.method : mock.method || ctx.method;
+  let url = options && options.url ? options.url : mock.url || ctx.url;
   let isBlock = mock.mockBeforeReturn === false;
 
   let id = mock.item && mock.item._id ? mock.item._id : 'none';
   let ua = ctx.header['user-agent'];
   let ip = ipUtils.getClientIP(ctx);
   let cost = Date.now() - mock.start;
-
   logger.info(
-    `[${method}] ${ctx.status} "${url}" cost:${cost} _id:${id} projectID:${
-      mock.projectID || 'none'
-    } mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy} ip:${ip} ua:"${ua}"`
+    `[${method}] ${
+      ctx.status
+    } "${url}" cost:${cost} _id:${id} projectID:${mock.projectID ||
+      'none'} mockBefore:${!!mock.mockBeforeFunction} mockBeforeBlock:${isBlock} mockContent:${!!mock.mockContent} mockAfter:${!!mock.mockAfterFunction} mockProxy:${proxy} ip:${ip} ua:"${ua}"`
   );
 }
 
@@ -570,7 +597,10 @@ function renderToBody(ctx, obj) {
   var type = obj.type || item.type || 'json';
   var callback = obj.query['callback'] || obj.query['cb'];
   var result = obj.result || '';
-  let proxy = mock.requestOptions && mock.requestOptions.proxy ? mock.requestOptions.proxy : '';
+  let proxy =
+    mock.requestOptions && mock.requestOptions.proxy ?
+    mock.requestOptions.proxy :
+    '';
   if (ctx.state.isSet) {
     return;
   }

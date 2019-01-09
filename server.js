@@ -31,7 +31,9 @@ const myRouter = require("./src/router");
 const myUtil = require("./src/util");
 const mySocket = require("./src/socket");
 
-app.use(koaBody());
+app.use(koaBody({
+	multipart: true
+}));
 app.use(views(path.resolve(__dirname, "pug"), {
 	extension: "pug",
 	engineSource: {

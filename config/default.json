@@ -17,5 +17,8 @@
 		"logoutPath": "/mock/cas/logout.php",
 		"appid": "1118d80f49a1b5694d381e38abe94979",
 		"secret": "1d442e6493df2218722a0fe89a386f89"
+	},
+	"request": {
+		"followRedirect": false
 	}
 }

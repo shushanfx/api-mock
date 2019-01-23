@@ -8,6 +8,7 @@ var log4js = require('log4js');
 var mimeType = require('mime-types');
 var iconv = require('iconv-lite');
 const isHTML = require('is-html');
+const config = require('config')
 
 var Wrapper = require('./bean/wrapper');
 var WrapperError = require('./bean/wrapperError');
@@ -19,6 +20,7 @@ const urlencode = require('urlencode');
 const isIp = require('is-ip');
 const parseDomain = require('parse-domain');
 const ipUtils = require('./util/ip');
+const isFollowRedirect = config.has("request.followRedirect") ? false : true;
 
 var AsyncFunction = global.AsyncFunction;
 if (!AsyncFunction) {
@@ -190,8 +192,10 @@ function createRequestOption(mock, ctx) {
       options.headers[key] = ctx.headers[key];
     });
   }
-  if (mock.isNotRedirect) {
+  if (mock.item && mock.item.isNotRedirect) {
     options.followRedirect = false;
+  } else {
+    options.followRedirect = isFollowRedirect;
   }
   options.headers['host'] = getHost();
   if (mock.item && mock.item.isProxy && typeof mock.item.proxy === 'string') {

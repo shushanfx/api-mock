@@ -12,6 +12,7 @@ const MockObjectSchema = mongoose.Schema({
 	"wiki": String,
 
 	"name": String,
+	"tag": String,
 	"description": String,
 	"creator": String,
 	"createdTime": Number,

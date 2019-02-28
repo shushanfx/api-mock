@@ -2,31 +2,22 @@ var AbstractRouter = require("../abstractRouter");
 var dao = require("../dao/dao")
 var cache = require("../dao/cache");
 var Result = require("../bean/result");
-
-function buildReg(str) {
-	var _s = str;
-	if (typeof _s === "string") {
-		_s = _s.trim();
-	}
-	if (_s) {
-		return new RegExp(_s);
-	}
-}
+var regUtils = require('../util/regUtils');
 
 function buildQuery(obj) {
 	var query = {}
 	let order = null;
 	if (obj.name) {
-		query.name = buildReg(obj.name);
+		query.name = regUtils.str2Reg(obj.name);
 	}
 	if (obj.host) {
-		query.host = buildReg(obj.host);
+		query.host = regUtils.str2Reg(obj.host);
 	}
 	if (obj.path) {
-		query.path = buildReg(obj.path);
+		query.path = regUtils.str2Reg(obj.path);
 	}
 	if (obj.project) {
-		query.project = buildReg("(^|,)" + obj.project + "(,|$)");
+		query.project = new RegExp("(^|,)" + bj.project + "(,|$)");
 	}
 
 	if (obj.projectID) {

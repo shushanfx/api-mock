@@ -1,24 +1,15 @@
 var AbstractRouter = require("../abstractRouter");
 var dao = require("../dao/dao")
 var Result = require("../bean/result");
-
-function buildReg(str) {
-  var _s = str;
-  if (typeof _s === "string") {
-    _s = _s.trim();
-  }
-  if (_s) {
-    return new RegExp(_s);
-  }
-}
+var regUtils = require('../util/regUtils');
 
 function buildQuery(obj) {
   var query = {}
   if (obj.name) {
-    query.name = buildReg(obj.name);
+    query.name = regUtils.str2Reg(obj.name);
   }
   if (obj.projectID) {
-    query.projectID = buildReg(obj.projectID);
+    query.projectID = regUtils.str2Reg(obj.projectID);
   }
   if (obj.follow) {
     query.follows = obj.follow;

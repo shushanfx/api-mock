@@ -8,7 +8,8 @@ var log4js = require('log4js');
 var mimeType = require('mime-types');
 var iconv = require('iconv-lite');
 const isHTML = require('is-html');
-const config = require('config')
+const config = require('config');
+const pathUtils = require('./util/path');
 
 var Wrapper = require('./bean/wrapper');
 var WrapperError = require('./bean/wrapperError');
@@ -440,7 +441,7 @@ module.exports = function () {
             // loggerError(mock.logger, e);
             ctx.status = e.statusCode || 500;
             let message = e.message;
-            if (e.response && e.response.body) {
+            if (e.response) {
               message = e.response.body;
               if (message instanceof Buffer) {
                 let charset =
@@ -453,8 +454,23 @@ module.exports = function () {
                   loggerError(mock.logger, e1);
                 }
               }
+              // header 透传
+              // ctx.status = e.response.status;
+              for (let header in e.response.headers) {
+                let value = e.response.headers[header];
+                // handle 302 307 301
+                if (header === 'content-length') {
+                  continue;
+                } else if (header === 'location') {
+                  let url = options.url;
+                  value = pathUtils.getAbURL(url, value);
+                }
+                ctx.set(header, value);
+              }
+              ctx.body = message;
+            } else {
+              ctx.body = message || 'Server Inner Error';
             }
-            ctx.body = message || 'Server Inner Error';
           }
         } else {
           // not found

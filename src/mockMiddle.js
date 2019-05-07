@@ -200,11 +200,13 @@ function createRequestOption(mock, ctx) {
   }
   options.headers['host'] = getHost();
   if (mock.item && mock.item.isProxy && typeof mock.item.proxy === 'string') {
-    options.proxy = buildProxy(mock.item.proxy);
+    let proxyURL = buildProxy(mock.item.proxy);
+    options.url = options.url.replace(/https?:\/\/[^\/]+/gi, proxyURL);
+    // options.proxy = buildProxy(mock.item.proxy);
     // 如果使用代理，则将https默认转为http
-    options.url = options.url.replace(/^https?/gi, 'http');
+    // options.url = options.url.replace(/^https?/gi, 'http');
     // 取消tunnel
-    options.tunnel = false;
+    // options.tunnel = false;
   }
   if (
     ctx.method.toLowerCase() in {

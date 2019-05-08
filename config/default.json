@@ -5,7 +5,8 @@
 	"db": {
 		"url": "mongodb://10.138.30.208:27017/mock",
 		"user": "mock",
-		"pass": "mock"
+		"pass": "mock",
+		"useMongoClient": true
 	},
 	"pager": {
 		"size": 10

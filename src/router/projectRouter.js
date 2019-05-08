@@ -25,7 +25,6 @@ function buildQuery(obj) {
 
 class BeRouter extends AbstractRouter {
   init() {
-    var me = this;
     this.json("project/get", async function (ctx) {
         let _id = ctx.query["_id"];
         if (_id) {

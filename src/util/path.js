@@ -7,7 +7,7 @@ module.exports.getAbURL = function (...args) {
   arr.forEach(item => {
     if (typeof item === 'string' && item) {
       let aItem = item.trim();
-      let arr = /^(https?:)?(\/\/)?([^\/\?\#]+)?(\/)?([^\?\#]+)?(\?[^\#]*)?(\#[^$]*)?$/gi.exec(
+      let arr = /^(https?:)?(\/\/)?([^/?#]+)?(\/)?([^?#]+)?(\?[^#]*)?(#[^$]*)?$/gi.exec(
         aItem
       );
       if (arr) {
@@ -16,16 +16,14 @@ module.exports.getAbURL = function (...args) {
           for (let i = 0; i < arr.length; i++) {
             obj.arr[i] = arr[i];
           }
-        }
-        // just //
-        else if (arr[2]) {
+        } else if (arr[2]) {
+          // just //
           for (let i = 0; i < arr.length; i++) {
             obj.arr[i] = arr[i];
           }
           obj.arr[0] = window.location.protocol;
-        }
-        // /path
-        else if (!arr[3] && arr[4]) {
+        } else if (!arr[3] && arr[4]) {
+          // /path
           for (let i = 4; i < arr.length; i++) {
             obj.arr[i] = arr[i];
           }

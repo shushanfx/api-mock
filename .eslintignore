@@ -1,0 +1,5 @@
+config/**
+doc/**
+init/**
+pug/**
+static/**

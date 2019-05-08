@@ -1,15 +1,12 @@
 var path = require("path");
 
-var glob = require("glob")
 var KoaRouter = require("koa-router");
 var log4js = require("log4js");
-var stringFormat = require("string-format");
 var config = require("config");
 
 var MyRouter = require("./router/index.js");
 var MyDao = require("./dao/dao.js");
 var MyMock = require("./mockMiddle");
-// var FileServe = require("./fileMiddle");
 var FileServe = require("koa2-file-middle");
 const cas = require('./middleware/cas');
 
@@ -54,7 +51,7 @@ exports.register = function register(app) {
 							} else {
 								router.get(key, cas.check, options.handler);
 							}
-							logger.info(stringFormat("Register mapper for {} with method {}.", key, options.method || "get"));
+							logger.info("Register mapper for %s with method %s.", key, options.method || "get");
 						}
 					});
 					// router.use(cas.check);

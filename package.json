@@ -1,6 +1,6 @@
 {
   "name": "api-mock",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool to mock api.",
   "main": "server.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "start": "node server.js",
     "dev": "supervisor server.js",
     "lint": "eslint server.js src/**/*.js",
-    "commit-msg-check": "validate-commit-msg"
+    "commit-msg-check": "validate-commit-msg",
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
   },
   "repository": {
     "type": "git",
@@ -46,6 +47,7 @@
     "urlencode": "^1.1.0"
   },
   "devDependencies": {
+    "conventional-changelog": "^3.1.8",
     "eslint": "^5.12.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",

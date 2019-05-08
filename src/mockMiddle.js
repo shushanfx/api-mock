@@ -60,34 +60,36 @@ function wrapRequestBody(ctx, options, logger) {
     try {
       let charset = ctx.request.charset || 'utf8';
       if (ctx.is('multipart')) {
-        let postObject = {
-          ...ctx.request.body
-        };
-        for (let key in ctx.request.files) {
-          let file = ctx.request.files[key];
-          if (Array.isArray(file)) {
-            postObject[key] = file.map(entity => {
-              return {
-                value: fs.createReadStream(entity.path),
-                options: {
-                  filename: entity.name,
-                  contentType: entity.type
-                }
-              }
-            })
-          } else {
-            postObject[key] = {
-              value: fs.createReadStream(file.path),
-              options: {
-                filename: file.name,
-                contentType: file.type
-              }
-            }
-          }
-        }
+        // let postObject = {
+        //   ...ctx.request.body
+        // };
+        // for (let key in ctx.request.files) {
+        //   let file = ctx.request.files[key];
+        //   if (Array.isArray(file)) {
+        //     postObject[key] = file.map(entity => {
+        //       return {
+        //         value: fs.createReadStream(entity.path),
+        //         options: {
+        //           filename: entity.name,
+        //           contentType: entity.type
+        //         }
+        //       }
+        //     })
+        //   } else {
+        //     postObject[key] = {
+        //       value: fs.createReadStream(file.path),
+        //       options: {
+        //         filename: file.name,
+        //         contentType: file.type
+        //       }
+        //     }
+        //   }
+        // }
 
-        delete options.headers['content-type'];
-        options.formData = postObject;
+        // delete options.headers['content-type'];
+        // options.formData = postObject;
+        // options.body = 
+        options.body = ctx.req;
       } else if (ctx.is('json')) {
         options.body = ctx.request.body;
         options.json = true;
@@ -200,11 +202,13 @@ function createRequestOption(mock, ctx) {
   }
   options.headers['host'] = getHost();
   if (mock.item && mock.item.isProxy && typeof mock.item.proxy === 'string') {
-    options.proxy = buildProxy(mock.item.proxy);
+    let proxyURL = buildProxy(mock.item.proxy);
+    options.url = options.url.replace(/https?:\/\/[^\/]+/gi, proxyURL);
+    // options.proxy = buildProxy(mock.item.proxy);
     // 如果使用代理，则将https默认转为http
-    options.url = options.url.replace(/^https?/gi, 'http');
+    // options.url = options.url.replace(/^https?/gi, 'http');
     // 取消tunnel
-    options.tunnel = false;
+    // options.tunnel = false;
   }
   if (
     ctx.method.toLowerCase() in {

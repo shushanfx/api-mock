@@ -60,34 +60,36 @@ function wrapRequestBody(ctx, options, logger) {
     try {
       let charset = ctx.request.charset || 'utf8';
       if (ctx.is('multipart')) {
-        let postObject = {
-          ...ctx.request.body
-        };
-        for (let key in ctx.request.files) {
-          let file = ctx.request.files[key];
-          if (Array.isArray(file)) {
-            postObject[key] = file.map(entity => {
-              return {
-                value: fs.createReadStream(entity.path),
-                options: {
-                  filename: entity.name,
-                  contentType: entity.type
-                }
-              }
-            })
-          } else {
-            postObject[key] = {
-              value: fs.createReadStream(file.path),
-              options: {
-                filename: file.name,
-                contentType: file.type
-              }
-            }
-          }
-        }
+        // let postObject = {
+        //   ...ctx.request.body
+        // };
+        // for (let key in ctx.request.files) {
+        //   let file = ctx.request.files[key];
+        //   if (Array.isArray(file)) {
+        //     postObject[key] = file.map(entity => {
+        //       return {
+        //         value: fs.createReadStream(entity.path),
+        //         options: {
+        //           filename: entity.name,
+        //           contentType: entity.type
+        //         }
+        //       }
+        //     })
+        //   } else {
+        //     postObject[key] = {
+        //       value: fs.createReadStream(file.path),
+        //       options: {
+        //         filename: file.name,
+        //         contentType: file.type
+        //       }
+        //     }
+        //   }
+        // }
 
-        delete options.headers['content-type'];
-        options.formData = postObject;
+        // delete options.headers['content-type'];
+        // options.formData = postObject;
+        // options.body = 
+        options.body = ctx.req;
       } else if (ctx.is('json')) {
         options.body = ctx.request.body;
         options.json = true;

@@ -1,5 +1,3 @@
-var debug = require('debug')('MockMiddleWare');
-const fs = require('fs');
 const querystring = require('querystring');
 var merge = require('merge');
 var co = require('co');
@@ -21,7 +19,7 @@ const urlencode = require('urlencode');
 const isIp = require('is-ip');
 const parseDomain = require('parse-domain');
 const ipUtils = require('./util/ip');
-const isFollowRedirect = config.has("request.followRedirect") ? false : true;
+const isFollowRedirect = config.has("request.followRedirect")
 
 var AsyncFunction = global.AsyncFunction;
 if (!AsyncFunction) {
@@ -85,10 +83,6 @@ function wrapRequestBody(ctx, options, logger) {
         //     }
         //   }
         // }
-
-        // delete options.headers['content-type'];
-        // options.formData = postObject;
-        // options.body = 
         options.body = ctx.req;
       } else if (ctx.is('json')) {
         options.body = ctx.request.body;
@@ -159,7 +153,7 @@ function createRequestOption(mock, ctx) {
     return arr.join('');
   };
   let buildProxy = function (proxy) {
-    let arr = /^\s*(([^:]+):\/\/)?([^:\/]+)(:(\d+))?\s*$/gi.exec(proxy);
+    let arr = /^\s*(([^:]+):\/\/)?([^:/]+)(:(\d+))?\s*$/gi.exec(proxy);
     if (arr && arr[3]) {
       return (
         (arr[2] || 'http') +
@@ -194,7 +188,7 @@ function createRequestOption(mock, ctx) {
   options.headers['host'] = getHost();
   if (mock.item && mock.item.isProxy && typeof mock.item.proxy === 'string') {
     let proxyURL = buildProxy(mock.item.proxy);
-    options.url = options.url.replace(/https?:\/\/[^\/]+/gi, proxyURL);
+    options.url = options.url.replace(/https?:\/\/[^/]+/gi, proxyURL);
     // options.proxy = buildProxy(mock.item.proxy);
     // 如果使用代理，则将https默认转为http
     // options.url = options.url.replace(/^https?/gi, 'http');
@@ -590,7 +584,7 @@ function renderToCookie(ctx, obj) {
     if (header) {
       let domain = header;
       let aIP = isIp(header);
-      let port = obj.isUsePort ? port || '' : '';
+      let port = obj.isUsePort ? (obj.port || '') : '';
       if (aIP) {
         // do nothing
       } else {
@@ -624,10 +618,8 @@ function renderToBody(ctx, obj) {
   var type = obj.type || item.type || 'json';
   var callback = obj.query['callback'] || obj.query['cb'];
   var result = obj.result || '';
-  let proxy =
-    mock.requestOptions && mock.requestOptions.proxy ?
-    mock.requestOptions.proxy :
-    '';
+  let isProxy = mock.requestOptions && mock.requestOptions.proxy;
+  let proxy = isProxy ? mock.requestOptions.proxy : '';
   if (ctx.state.isSet) {
     return;
   }
@@ -637,85 +629,85 @@ function renderToBody(ctx, obj) {
     result =
       result +
       `<script type="text/javascript">
-			(function(){
-				var elID = "${IDNumber}";
-				var projectID = "${mock.projectID}";
-				var proxy = "${proxy}";
-				var str = '<div id="${IDNumber}-container" style="display:none; background: rebeccapurple; text-align: center;position: relative;bottom:20px; padding: 5px 10px; border-radius: 8px;">';
-				str += '<div>projectID: ${mock.projectID}</div>';
-				if(proxy){
-					str += '<div>proxy: ' + proxy + '</div>';
-				}
-				if(projectID !== "undefined" && projectID !== "none" 
-					&& projectID !== "" && projectID !== "null"){
-					str += '<div><a style="color: wheat;" href="javascript:void(0);" id="${IDNumber}-clear">清除ProjectID</a></div>';
-				}
-				str += '<div><a style="color: wheat;" href="javascript:void(0);" id="${IDNumber}-new">新ProjectID</a></div>';
-				str += '</div>';
-				str += '<p id="${IDNumber}-btn" style="cursor: pointer; margin:0; padding: 8px; width: 20px; border-radius: 20px; position: absolute; background: rebeccapurple; text-align: center; bottom: 0; right: 0; box-sizing: content-box;">+</p>'
-				var aDiv = document.createElement('div');
-				aDiv.setAttribute('style', 'position:fixed; bottom: 30px; right: 20px; font-size: 20px; z-index: 99999; color: white; margin-left: 20px;');
-				aDiv.innerHTML = str;
-				document.body.appendChild(aDiv);
-				setTimeout(function(){
-					hideContainer();
-				}, 5000);
-				var container = document.getElementById('${IDNumber}-container');
-				var btn = document.getElementById('${IDNumber}-btn');
-				var btnClear = document.getElementById('${IDNumber}-clear');
-				var btnNew = document.getElementById('${IDNumber}-new');
-				var isShow = false;
-				btn.onclick = function(){
-					if(isShow){
-						hideContainer();
-					}
-					else{
-						showContainer();
-					}
-				};
-				if(btnClear){
-					btnClear.onclick = function(e){
-						newProjectID('none');
-						e.preventDefault();
-					};					
-				}
-				if(btnNew){
-					btnNew.onclick = function(e){
-						var newID = prompt("输入新的projectID: ");
-						if(newID && newID.trim()){
-							newProjectID(newID);
-						}
-						e.preventDefault();
-					};					
-				}
-				function newProjectID(pid){
-					var search = location.search;
-					var reg = /[\?\&](projectID(\=[^\&$]*)?)/gi;
-					var arr = reg.exec(search);
-					if (arr) {
-						search = search.replace(arr[1], 'projectID=' + encodeURIComponent(pid || ''));
-					} else {
-						if (search.indexOf('?') !== -1) {
-							search += '&';
-						} else {
-							search += '?';
-						}
-						search += 'projectID=' + encodeURIComponent(pid || '');
-					}
-					location.href = window.location.protocol + "//" + location.host + location.pathname + search + location.hash;
-				}
-				function showContainer(){
-					isShow = true;
-					container.style.display = 'block';
-					btn.innerHTML = '-';
-				}
-				function hideContainer(){
-					isShow = false;
-					container.style.display = 'none';
-					btn.innerHTML = '+';
-				}
-			})();
-		</script>`;
+      (function(){
+        var elID = "${IDNumber}";
+        var projectID = "${mock.projectID}";
+        var proxy = "${proxy}";
+        var str = '<div id="${IDNumber}-container" style="display:none; background: rebeccapurple; text-align: center;position: relative;bottom:20px; padding: 5px 10px; border-radius: 8px;">';
+        str += '<div>projectID: ${mock.projectID}</div>';
+        if(proxy){
+          str += '<div>proxy: ' + proxy + '</div>';
+        }
+        if(projectID !== "undefined" && projectID !== "none" 
+          && projectID !== "" && projectID !== "null"){
+          str += '<div><a style="color: wheat;" href="javascript:void(0);" id="${IDNumber}-clear">清除ProjectID</a></div>';
+        }
+        str += '<div><a style="color: wheat;" href="javascript:void(0);" id="${IDNumber}-new">新ProjectID</a></div>';
+        str += '</div>';
+        str += '<p id="${IDNumber}-btn" style="cursor: pointer; margin:0; padding: 8px; width: 20px; border-radius: 20px; position: absolute; background: rebeccapurple; text-align: center; bottom: 0; right: 0; box-sizing: content-box;">+</p>'
+        var aDiv = document.createElement('div');
+        aDiv.setAttribute('style', 'position:fixed; bottom: 30px; right: 20px; font-size: 20px; z-index: 99999; color: white; margin-left: 20px;');
+        aDiv.innerHTML = str;
+        document.body.appendChild(aDiv);
+        setTimeout(function(){
+          hideContainer();
+        }, 5000);
+        var container = document.getElementById('${IDNumber}-container');
+        var btn = document.getElementById('${IDNumber}-btn');
+        var btnClear = document.getElementById('${IDNumber}-clear');
+        var btnNew = document.getElementById('${IDNumber}-new');
+        var isShow = false;
+        btn.onclick = function(){
+          if(isShow){
+            hideContainer();
+          }
+          else{
+            showContainer();
+          }
+        };
+        if(btnClear){
+          btnClear.onclick = function(e){
+            newProjectID('none');
+            e.preventDefault();
+          };
+        }
+        if(btnNew){
+          btnNew.onclick = function(e){
+            var newID = prompt("输入新的projectID: ");
+            if(newID && newID.trim()){
+              newProjectID(newID);
+            }
+            e.preventDefault();
+          };
+        }
+        function newProjectID(pid){
+          var search = location.search;
+          var reg = /[?&](projectID(=[^&$]*)?)/gi;
+          var arr = reg.exec(search);
+          if (arr) {
+            search = search.replace(arr[1], 'projectID=' + encodeURIComponent(pid || ''));
+          } else {
+            if (search.indexOf('?') !== -1) {
+              search += '&';
+            } else {
+              search += '?';
+            }
+            search += 'projectID=' + encodeURIComponent(pid || '');
+          }
+          location.href = window.location.protocol + "//" + location.host + location.pathname + search + location.hash;
+        }
+        function showContainer(){
+          isShow = true;
+          container.style.display = 'block';
+          btn.innerHTML = '-';
+        }
+        function hideContainer(){
+          isShow = false;
+          container.style.display = 'none';
+          btn.innerHTML = '+';
+        }
+      })();
+    </script>`;
   }
   if (callback) {
     // jsonp
@@ -725,7 +717,7 @@ function renderToBody(ctx, obj) {
       case 'html':
       case 'text':
         result = result
-          .replace(/\'/g, "\\'")
+          .replace(/'/g, "\\'")
           .replace(/\n/g, '')
           .replace(/\r/g, '');
         ctx.body = [

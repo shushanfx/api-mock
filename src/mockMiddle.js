@@ -121,20 +121,11 @@ function wrapRequestBody(ctx, options, logger) {
 }
 
 function createRequestOption(mock, ctx) {
-  let protocol = ctx.protocol,
-    host = mock && mock.host ? mock.host : ctx.host,
-    path = mock && mock.path ? mock.path : ctx.path,
-    port = mock && mock.port ? mock.port : ctx.port,
-    query = mock && mock.query ? mock.query : ctx.query;
-
-  if (ctx.headers['x-scheme']) {
-    protocol = ctx.headers['x-scheme'].trim().replace(/\:/gi, '');
-    delete ctx.headers['x-scheme']; // delete x-scheme
-  }
-  if (ctx.headers['x-forwarded-proto']) {
-    protocol = ctx.headers['x-forwarded-proto'].trim().replace(/\:/gi, '');
-    delete ctx.headers['x-forwarded-proto']; // delete x-scheme
-  }
+  let protocol = mock && mock.protocol ? mock.protocol : (ctx.protocol || "http");
+  let host = mock && mock.host ? mock.host : ctx.host;
+  let path = mock && mock.path ? mock.path : ctx.path;
+  let port = mock && mock.port ? mock.port : ctx.port;
+  let query = mock && mock.query ? mock.query : ctx.query;
   let getHost = function () {
     if (protocol === 'https') {
       return host + (!port || port == 443 ? '' : ':' + port);
@@ -263,20 +254,25 @@ module.exports = function () {
   return async function (ctx, next) {
     // 是否找到Middle.
     if (ctx.status == 404) {
-      var path = ctx.path,
-        host = ctx.hostname,
-        port = ctx.port;
-
-      var isWithMockParameter = false;
-      var query = ctx.query;
+      let path = ctx.path;
+      let host = ctx.hostname;
+      let port = ctx.port;
+      let query = ctx.query;
+      let protocol = ctx.protocol;
+      if (ctx.headers['x-scheme']) {
+        protocol = ctx.headers['x-scheme'].trim().replace(/:/gi, '');
+        delete ctx.headers['x-scheme']; // delete x-scheme
+      }
+      if (ctx.headers['x-forwarded-proto']) {
+        protocol = ctx.headers['x-forwarded-proto'].trim().replace(/:/gi, '');
+        delete ctx.headers['x-forwarded-proto']; // delete x-forwarded-proto
+      }
 
       if (ctx.query['mock-host']) {
         host = ctx.query['mock-host'];
-        isWithMockParameter = true;
       }
       if (ctx.query['mock-port']) {
         port = ctx.query['mock-port'];
-        isWithMockParameter = true;
       }
       if (ctx.query['mock-path']) {
         path = ctx.query['mock-path'];
@@ -289,7 +285,9 @@ module.exports = function () {
           );
           path = newPath;
         }
-        isWithMockParameter = true;
+      }
+      if (ctx.query['mock-protocol'] || ctx.query['mock-scheme']) {
+        protocol = ctx.query['mock-protocol'] || ctx.query['mock-scheme'];
       }
       let projectID = getProjectID(ctx);
       let obj = await dao.query(host, port, path, projectID);
@@ -300,6 +298,7 @@ module.exports = function () {
       mock.path = path;
       mock.host = host;
       mock.query = query;
+      mock.protocol = protocol || 'http';
       mock.projectID = projectID;
       mock.logger = log4js.getLogger(projectID);
       mock.console = mock.logger;
@@ -421,9 +420,9 @@ module.exports = function () {
                   ext = ext === false ? 'text' : ext;
                   mock.result = response.body;
                   // if (ext === "text" || ext === "html" || ext === "javascript") {
-                  // 	mock.result = jsonUtil.getFromString(response.body);
+                  // mock.result = jsonUtil.getFromString(response.body);
                   // } else {
-                  // 	mock.result = response.body;
+                  // mock.result = response.body;
                   // }
                 } else {
                   // 直接返回
@@ -467,10 +466,14 @@ module.exports = function () {
                   continue;
                 } else if (header === 'location') {
                   let url = options.url;
+                  if (mock.isProxy) {
+                    url = url.replace(/https?:\/\/[^/]+/gi, `${mock.protocol}://${mock.host}`);
+                  }
                   value = pathUtils.getAbURL(url, value);
                 }
                 ctx.set(header, value);
               }
+              ctx.append('X-Mock-ProjectID', mock.projectID || 'none');
               ctx.body = message;
             } else {
               ctx.body = message || 'Server Inner Error';

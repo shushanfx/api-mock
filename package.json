@@ -1,6 +1,6 @@
 {
   "name": "api-mock",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A tool to mock api.",
   "main": "server.js",
   "scripts": {

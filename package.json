@@ -1,6 +1,6 @@
 {
   "name": "api-mock",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "A tool to mock api.",
   "main": "server.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "dev": "supervisor server.js",
     "lint": "eslint server.js src/**.js",
     "commit-msg-check": "validate-commit-msg",
-    "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s"
   },
   "repository": {
     "type": "git",
@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "conventional-changelog": "^3.1.8",
+    "cz-conventional-changelog": "^2.1.0",
     "eslint": "^5.12.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",
@@ -61,6 +62,11 @@
     "hooks": {
       "pre-commit": "npm run lint",
       "commit-msg": "npm run commit-msg-check"
+    }
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
     }
   }
 }

@@ -623,6 +623,13 @@ function renderToBody(ctx, obj) {
   if (ctx.state.isSet) {
     return;
   }
+  if (callback) {
+    // 如果返回数据满足callback的格式，则不再包裹
+    let reg = new RegExp(`${callback}()`, 'gi');
+    if (reg.exec(result)) {
+      callback = null;
+    }
+  }
   if (type === 'html' && isHTML(result)) {
     // insert js to html
     let IDNumber = `mockTool${Date.now()}`;

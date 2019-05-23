@@ -625,7 +625,7 @@ function renderToBody(ctx, obj) {
   }
   if (callback) {
     // 如果返回数据满足callback的格式，则不再包裹
-    let reg = new RegExp(`${callback}()`, 'gi');
+    let reg = new RegExp(`${callback}\\((.)*\\)`, 'gi');
     if (reg.exec(result)) {
       callback = null;
     }

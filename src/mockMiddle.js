@@ -7,7 +7,6 @@ var mimeType = require('mime-types');
 var iconv = require('iconv-lite');
 const isHTML = require('is-html');
 const config = require('config');
-const pathUtils = require('./util/path');
 
 var Wrapper = require('./bean/wrapper');
 var WrapperError = require('./bean/wrapperError');
@@ -459,11 +458,14 @@ module.exports = function () {
                 if (header === 'content-length') {
                   continue;
                 } else if (header === 'location') {
-                  let url = options.url;
                   if (mock.isProxy) {
-                    url = url.replace(/https?:\/\/[^/]+/gi, `${mock.protocol}://${mock.host}`);
+                    let myProxyURL = new RegExp(`https?://${mock.proxy}`, 'i');
+                    let newValue = value.replace(myProxyURL, '');
+                    if (newValue !== value) {
+                      logger.debug('Change redirect from %s to %s', value, newValue);
+                      value = newValue;
+                    }
                   }
-                  value = pathUtils.getAbURL(url, value);
                 }
                 ctx.set(header, value);
               }

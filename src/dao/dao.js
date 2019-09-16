@@ -5,6 +5,7 @@ var UrlPattern = require("url-pattern");
 
 var Cache = require("./cache");
 var str2array = require("../util/str2array");
+const domainUtils = require('../util/domainUtils');
 
 const logger = require('log4js').getLogger('dao');
 const MockObject = require("./model/mockObject");
@@ -128,12 +129,13 @@ const obj = {
       });
     });
   },
-  queryByPID: async function (projectID) {
+  queryByPID: async function (projectID, sort = {}) {
     return new Promise(resolve => {
       MockObject.find({
         project: projectID
       }).sort({
-        host: 1
+        host: 1,
+        ...sort
       }).exec((err, list) => {
         if (err) {
           resolve([])
@@ -166,52 +168,40 @@ const obj = {
     })
   },
   query: async function (host, port, path, projectID) {
-    var list = cacheObject.get("CacheObject");
-    var foundItem = null;
-    if (!projectID) {
-      return foundItem;
-    }
-    debug("Find mock item by ", projectID, host, port, path);
-    if (!list) {
-      list = await this.queryAll();
-      cacheObject.set("CacheObject", list);
-    }
-    if (list && list.length > 0) {
-      for (let i = 0; i < list.length; i++) {
-        let item = list[i];
-        if (item &&
-          item.project === projectID &&
-          item.host === host) {
-          if ((!item.isUsePort && !port) ||
-            (item.isUsePort && port == item.port)) {
-            if (item.path && !item.pattern) {
-              // init pattern with url-match
-              try {
-                item.pattern = new UrlPattern(item.path.trim());
-              } catch (e) {
-                item.pattern = null;
-              }
+    var list = await this.queryByPID(projectID, {
+      rank: 1
+    });
+    return list.map(item => {
+      if (item &&
+        item.project === projectID &&
+        domainUtils.isMatch2(host, item.host)) {
+        if ((!item.isUsePort && !port) ||
+          (item.isUsePort && port == item.port)) {
+          if (item.path && !item.pattern) {
+            // init pattern with url-match
+            try {
+              item.pattern = new UrlPattern(item.path.trim());
+            } catch (e) {
+              item.pattern = null;
             }
-            if (!item.pattern) {
-              console.warn(`${host}:${port}${item.path || ''}匹配规则创建失败！`);
-              continue;
-            }
-            let matched = item.pattern.match(path);
-            if (matched) {
-              foundItem = {
-                port,
-                host,
-                path,
-                item,
-                param: matched
-              }
-              break;
+          }
+          if (!item.pattern) {
+            console.warn(`${host}:${port}${item.path || ''}匹配规则创建失败！`);
+            return null;
+          }
+          let matched = item.pattern.match(path);
+          if (matched) {
+            return {
+              port,
+              host,
+              path,
+              item,
+              param: matched
             }
           }
         }
       }
-    }
-    return foundItem;
+    }).filter(item => item);
   },
 
   delMock: function (mockId) {

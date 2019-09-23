@@ -3,7 +3,6 @@ var http = require("http");
 
 var Koa = require("koa");
 var views = require("koa-views");
-var koaBody = require("koa-body");
 var pug = require("pug");
 var log4js = require('log4js');
 var config = require("config");
@@ -31,7 +30,6 @@ const myRouter = require("./src/router");
 const myUtil = require("./src/util");
 const mySocket = require("./src/socket");
 
-app.use(koaBody());
 app.use(views(path.resolve(__dirname, "pug"), {
   extension: "pug",
   engineSource: {

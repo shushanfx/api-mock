@@ -1,7 +1,7 @@
 const querystring = require('querystring');
 var merge = require('merge');
 var co = require('co');
-var request = require('request-promise');
+var request = require('request');
 var log4js = require('log4js');
 var mimeType = require('mime-types');
 var iconv = require('iconv-lite');
@@ -18,7 +18,7 @@ const urlencode = require('urlencode');
 const isIp = require('is-ip');
 const parseDomain = require('parse-domain');
 const ipUtils = require('./util/ip');
-const isFollowRedirect = config.has("request.followRedirect")
+const isFollowRedirect = config.has("request.followRedirect");
 
 var AsyncFunction = global.AsyncFunction;
 if (!AsyncFunction) {
@@ -40,34 +40,7 @@ function wrapRequestBody(ctx, options, logger) {
   if (type && typeof type === 'string') {
     try {
       let charset = ctx.request.charset || 'utf8';
-      if (ctx.is('multipart')) {
-        // let postObject = {
-        //   ...ctx.request.body
-        // };
-        // for (let key in ctx.request.files) {
-        //   let file = ctx.request.files[key];
-        //   if (Array.isArray(file)) {
-        //     postObject[key] = file.map(entity => {
-        //       return {
-        //         value: fs.createReadStream(entity.path),
-        //         options: {
-        //           filename: entity.name,
-        //           contentType: entity.type
-        //         }
-        //       }
-        //     })
-        //   } else {
-        //     postObject[key] = {
-        //       value: fs.createReadStream(file.path),
-        //       options: {
-        //         filename: file.name,
-        //         contentType: file.type
-        //       }
-        //     }
-        //   }
-        // }
-        options.body = ctx.req;
-      } else if (ctx.is('json')) {
+      if (ctx.is('json')) {
         options.body = ctx.request.body;
         options.json = true;
       } else {
@@ -88,7 +61,7 @@ function wrapRequestBody(ctx, options, logger) {
           options.headers['content-type'] =
             'application/x-www-form-urlencoded;charset=' + charset;
         } else {
-          options.body = ctx.request.body;
+          options.pipe = true;
         }
       }
     } catch (e) {
@@ -222,6 +195,28 @@ function getProjectID(ctx) {
       ctx.header['x-mock-pid'];
   }
   return projectID;
+}
+
+function requestPromise(options, ctx) {
+  return new Promise(resolve => {
+    let isPipe = false;
+    if (options.pipe) {
+      delete options.pipe;
+    }
+    let req = request(options, (err, res, body) => {
+      if (err) {
+        throw err;
+      } else if (res) {
+        res.body = body;
+        resolve(res);
+      } else {
+        throw new Error("Invalid body.");
+      }
+    });
+    if (isPipe) {
+      req.pipe(ctx.req);
+    }
+  })
 }
 
 module.exports = function () {
@@ -388,7 +383,7 @@ module.exports = function () {
               if (mockBeforeRequestFunction) {
                 await mockBeforeRequestFunction.call(mock, ctx, mock, options);
               }
-              let response = await request(options);
+              let response = await requestPromise(options, ctx);
               logger.debug('Request option: %o', options);
               if (response) {
                 let ext = getType(

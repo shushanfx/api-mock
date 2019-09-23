@@ -7,6 +7,7 @@ const MyDao = require("./dao/dao.js");
 const MyMock = require("./mockMiddle");
 const FileServe = require("koa2-file-middle");
 const cas = require('./middleware/cas');
+var koaBody = require("koa-body");
 
 const logger = log4js.getLogger("Router");
 
@@ -65,6 +66,7 @@ exports.register = function register(app) {
             let delta = Date.now() - start;
             logger.info(`[API-MOCK-BACKGROUND] ${ctx.method} ${ctx.status} [${ctx.path}] cost=${delta}`);
           });
+          router.use(koaBody());
           app.use(router.routes())
             .use(router.allowedMethods());
         }

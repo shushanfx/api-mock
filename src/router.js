@@ -28,7 +28,21 @@ exports.register = function register(app) {
     prefix: config.get("prefix"),
     cachedPath: false
   }));
-  app.use(cas);
+  let router = new KoaRouter();
+  router.all('/mock/**', koaBody(), cas, async (ctx, next) => {
+    let start = Date.now();
+    try {
+      await next();
+    } catch (e) {
+      logger.error(e);
+      ctx.status = 500;
+      ctx.body = e.message;
+    }
+    let delta = Date.now() - start;
+    logger.info(`[API-MOCK-BACKGROUND] ${ctx.method} ${ctx.status} [${ctx.path}] cost=${delta}`);
+  });
+  app.use(router.routes())
+    .use(router.allowedMethods());
   let list = MyRouter;
   list.forEach(item => {
     try {
@@ -53,20 +67,7 @@ exports.register = function register(app) {
               logger.info("Register mapper for %s with method %s.", key, options.method || "get");
             }
           });
-          // router.use(cas.check);
-          router.use(async (ctx, next) => {
-            let start = Date.now();
-            try {
-              await next();
-            } catch (e) {
-              logger.error(e);
-              ctx.status = 500;
-              ctx.body = e.message;
-            }
-            let delta = Date.now() - start;
-            logger.info(`[API-MOCK-BACKGROUND] ${ctx.method} ${ctx.status} [${ctx.path}] cost=${delta}`);
-          });
-          router.use(koaBody());
+          router.use(cas.check);
           app.use(router.routes())
             .use(router.allowedMethods());
         }

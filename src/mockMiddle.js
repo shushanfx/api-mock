@@ -40,11 +40,11 @@ function wrapRequestBody(ctx, options, logger) {
   if (type && typeof type === 'string') {
     try {
       let charset = ctx.request.charset || 'utf8';
-      if (ctx.is('json')) {
-        options.body = ctx.request.body;
-        options.json = true;
-      } else {
-        if (typeof ctx.request.body === 'object') {
+      if (typeof ctx.request.body === 'object') {
+        if (ctx.is('json')) {
+          options.body = ctx.request.body;
+          options.json = true;
+        } else {
           let arr = [];
           for (let key in ctx.request.body) {
             let value = ctx.request.body[key];
@@ -60,9 +60,9 @@ function wrapRequestBody(ctx, options, logger) {
           options.body = arr.join('&');
           options.headers['content-type'] =
             'application/x-www-form-urlencoded;charset=' + charset;
-        } else {
-          options.pipe = true;
         }
+      } else {
+        options.body = ctx.req;
       }
     } catch (e) {
       loggerError(logger, e);
@@ -199,11 +199,7 @@ function getProjectID(ctx) {
 
 function requestPromise(options, ctx) {
   return new Promise(resolve => {
-    let isPipe = false;
-    if (options.pipe) {
-      delete options.pipe;
-    }
-    let req = request(options, (err, res, body) => {
+    request(options, (err, res, body) => {
       if (err) {
         throw err;
       } else if (res) {
@@ -213,9 +209,6 @@ function requestPromise(options, ctx) {
         throw new Error("Invalid body.");
       }
     });
-    if (isPipe) {
-      req.pipe(ctx.req);
-    }
   })
 }
 

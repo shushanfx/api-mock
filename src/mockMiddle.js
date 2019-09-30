@@ -201,12 +201,12 @@ function requestPromise(options, ctx) {
   return new Promise(resolve => {
     request(options, (err, res, body) => {
       if (err) {
-        throw err;
+        resolve(err);
       } else if (res) {
         res.body = body;
         resolve(res);
       } else {
-        throw new Error("Invalid body.");
+        resolve(new Error("Invalid body."));
       }
     });
   })
@@ -378,6 +378,9 @@ module.exports = function () {
               }
               let response = await requestPromise(options, ctx);
               logger.debug('Request option: %o', options);
+              if (response instanceof Error) {
+                throw response;
+              }
               if (response) {
                 let ext = getType(
                   mimeType.extension(response.headers['content-type'])

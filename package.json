@@ -9,7 +9,7 @@
     "dev": "supervisor server.js",
     "lint": "eslint server.js src/**.js",
     "commit-msg-check": "validate-commit-msg",
-    "version": "conventional-changelog -p angular -i CHANGELOG.md -s"
+    "release": "standard-version"
   },
   "repository": {
     "type": "git",

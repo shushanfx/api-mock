@@ -12,7 +12,7 @@
 		"size": 10
 	},
 	"auth": {
-		"check": false,
+		"check": true,
 		"server": "http://10.138.30.208:8004",
 		"loginPath": "/mock/cas/login.php",
 		"logoutPath": "/mock/cas/logout.php",

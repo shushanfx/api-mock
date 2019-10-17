@@ -6,8 +6,15 @@ const logger = require('log4js').getLogger('cas');
 if (AUTH_CONFIG && AUTH_CONFIG.check) {
   const SomyCas = require('somy-koa-md-cas');
   const somy = SomyCas(Object.assign({
-    logger: logger
+    logger: logger,
+    onLogin: async (ctx) => {
+      logger.info("Login success with %s", ctx.path);
+    },
+    onLogout: async (ctx) => {
+      logger.info("Logout success with %s", ctx.path);
+    }
   }, AUTH_CONFIG));
+  logger.info("Open cas check.");
   module.exports = somy;
 } else {
   const somy = async (ctx, next) => {

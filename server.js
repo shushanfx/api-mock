@@ -11,19 +11,7 @@ var app = new Koa();
 var logger = null;
 var port = 0;
 
-log4js.configure({
-  appenders: {
-    'out': {
-      type: 'console'
-    }
-  },
-  categories: {
-    default: {
-      appenders: ['out'],
-      level: 'info'
-    }
-  }
-});
+log4js.configure(config.get("logger"));
 logger = log4js.getLogger("Server");
 
 const myRouter = require("./src/router");

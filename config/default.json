@@ -2,6 +2,19 @@
 	"port": 8001,
 	"prefix": "/mock/",
 	"suffix": ".php",
+	"logger": {
+		"appenders": {
+			"out": {
+				"type": "console"
+			}
+		},
+		"categories": {
+			"default": {
+				"appenders": ["out"],
+				"level": "debug"
+			}
+		}
+	},
 	"db": {
 		"url": "mongodb://10.138.30.208:27017/mock",
 		"user": "mock",
@@ -13,11 +26,13 @@
 	},
 	"auth": {
 		"check": true,
-		"server": "http://10.138.30.208:8004",
+		"server": "http://server01.zkconfig.sjs.ted:8004,http://server02.zkconfig.sjs.ted:8004,http://server03.zkconfig.sjs.ted:8004",
 		"loginPath": "/mock/cas/login.php",
 		"logoutPath": "/mock/cas/logout.php",
 		"appid": "1118d80f49a1b5694d381e38abe94979",
-		"secret": "1d442e6493df2218722a0fe89a386f89"
+		"secret": "1d442e6493df2218722a0fe89a386f89",
+		"publicID": "1672",
+		"publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiGLNz64bm9mFdYLgNyyc\nhFS+opeBjdAccsK82k7agtA97SltM+Za7UatiDZv5pjMQLMCxZA2XRGZyjaWDfzt\nRdBai0WH2QZ121dAq3plE+tvY698c8Us8AHd39Pas0yvwJmXjzylDrw8MnV2zucd\nGsmVKwsFVzKkMYHFuibbAJH+rFO+q5imXnNgpCAWstSVYSq5FnqvYFUG0OaPwa2Y\nQ0hpDqS8JGGQ44Vqc58IHyXRjHMylCoSRoO7KSQUbWZAwjMENPsWpG4LNcu3V6Mt\nPZv0wkkRB8ItysmSCjrFOF6OkT+DiOSEPCKA7JaXJ1dgxOtv1OvUdPdJ2YI4jAyj\nxQIDAQAB\n-----END PUBLIC KEY-----"
 	},
 	"request": {
 		"followRedirect": false

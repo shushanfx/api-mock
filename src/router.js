@@ -57,7 +57,6 @@ exports.register = function register(app) {
           keys.forEach(key => {
             let options = ins.map[key];
             if (typeof options === "object" && options.handler) {
-              logger.debug("Register mapper for " + key);
               if (typeof options.method == "string" &&
                 ALLOW_METHOD[options.method]) {
                 router[options.method](key, cas.check, options.handler);

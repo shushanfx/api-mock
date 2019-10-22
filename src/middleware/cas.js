@@ -4,7 +4,7 @@ const AUTH_CONFIG = config.get('auth');
 const logger = require('log4js').getLogger('cas');
 
 if (AUTH_CONFIG && AUTH_CONFIG.check) {
-  const SomyCas = require('somy-koa-md-cas');
+  const SomyCas = require('somy-koa-md-xiaop');
   const somy = SomyCas(Object.assign({
     logger: logger,
     onLogin: async (ctx) => {

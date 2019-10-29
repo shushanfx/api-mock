@@ -37,7 +37,7 @@
     "log4js": "^2.3.11",
     "merge": "^1.2.1",
     "mockjs": "^1.0.1-beta3",
-    "mongoose": "^4.13.17",
+    "mongoose": "^5.7.7",
     "parse-domain": "^2.1.7",
     "pug": "^2.0.0-rc.4",
     "request": "^2.88.0",

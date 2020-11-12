@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jasmine test/*.js",
     "start": "node server.js",
-    "dev": "supervisor server.js",
+    "dev": "nodemon server.js",
     "lint": "eslint server.js src/**.js",
     "commit-msg-check": "validate-commit-msg",
     "release": "standard-version"

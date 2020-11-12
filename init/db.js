@@ -1,4 +1,4 @@
-use admin;
+use mock;
 db.createUser({
 	user: "mock",
 	pwd: "mock",

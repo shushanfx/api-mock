@@ -25,7 +25,8 @@
 		"size": 10
 	},
 	"auth": {
-		"check": false
+		"check": true,
+		"token": "NdkL7tr85N1rXMxLjnOWT2hGwDVcfghr"
 	},
 	"request": {
 		"followRedirect": false

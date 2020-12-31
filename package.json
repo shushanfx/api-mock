@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/shushanfx/api-mock#readme",
   "dependencies": {
+    "@tencent/smart-proxy": "^1.3.2",
     "config": "^1.27.0",
     "is-html": "^1.1.0",
     "is-ip": "^2.0.0",

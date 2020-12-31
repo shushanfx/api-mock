@@ -15,5 +15,8 @@ Result.fail = function (message, data) {
 Result.illegal = function (data) {
   return new Result(-2, "Illegal Argument(s).", data);
 }
+Result.notAuth = function(data) {
+  return new Result(-512, "Not auth", data);
+}
 
 module.exports = exports = Result;

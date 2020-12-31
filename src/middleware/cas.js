@@ -2,19 +2,45 @@ const config = require('config');
 const AUTH_CONFIG = config.get('auth');
 
 const logger = require('log4js').getLogger('cas');
+const ResultInfo = require('../bean/result');
 
 if (AUTH_CONFIG && AUTH_CONFIG.check) {
-  const SomyCas = require('somy-koa-md-xiaop');
-  const somy = SomyCas(Object.assign({
-    logger: logger,
-    onLogin: async (ctx) => {
-      logger.info("Login success with %s", ctx.path);
-    },
-    onLogout: async (ctx) => {
-      logger.info("Logout success with %s", ctx.path);
+  const SmartProxy = require('@tencent/smart-proxy');
+  SmartProxy.setOptions({
+    token: AUTH_CONFIG.token,
+    always_auth: true
+  })
+  const somy = async (ctx, next) => {
+    const checkResult = SmartProxy.check((key) => ctx.headers[key]);
+    if (checkResult.code === 0) {
+      // 成功
+      const username = ctx.headers['staffname'];
+      const userid = ctx.headers['staffid'];
+      ctx.cas = {
+        username: username,
+        entity: {
+          username: username,
+          email: `${username}@tencent.com`,
+          sn: username,
+          gn: username,
+          displayName: username,
+          userid: userid
+        }
+      }
+      return next();
+    } else {
+      // 重新登陆
+      logger.info("登陆校验失败 %o", checkResult);
+      const xRequestedWith = ctx.headers['x-requested-with'];
+      if (xRequestedWith && xRequestedWith.toLowerCase() === 'xmlhttprequest') {
+        ctx.body = ResultInfo.notAuth();
+        return;
+      }
+      // 重新登陆
+      ctx.body = "token过期";
     }
-  }, AUTH_CONFIG));
-  logger.info("Open cas check.");
+  }
+  somy.check = somy;
   module.exports = somy;
 } else {
   const somy = async (ctx, next) => {
